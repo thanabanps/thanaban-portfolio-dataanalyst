@@ -230,56 +230,7 @@ footer { padding: 24px 0; text-align: center; color: #9ca3af; font-size: 13px; b
           <div class="gallery-caption">Click any image to enlarge · 6 more views</div>
         </div>
       </div>
-
-      <div class="project-card">
-        <img class="project-img" src="https://raw.githubusercontent.com/thanabanps/thanaban-portfolio-dataanalyst/main/images/dashboard-overview.png" alt="Sales Analytics Dashboard" onclick="openLightbox(this)">
-        <div class="project-body">
-          <div class="project-meta">
-            <span class="project-type">HTML / JavaScript</span>
-          </div>
-          <div class="project-title">Modern Trade Sales Analytics Dashboard</div>
-          
-          <div style="display:flex;gap:16px;flex-wrap:wrap;margin:12px 0;padding:14px 16px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
-            <div><div style="font-size:20px;font-weight:700;color:#111;">1.07B+</div><div style="font-size:11px;color:#9ca3af;margin-top:2px;">THB Sales Tracked</div></div>
-            <div style="width:1px;background:#e5e7eb;"></div>
-            <div><div style="font-size:20px;font-weight:700;color:#111;">110</div><div style="font-size:11px;color:#9ca3af;margin-top:2px;">SKUs Monitored</div></div>
-            <div style="width:1px;background:#e5e7eb;"></div>
-            <div><div style="font-size:20px;font-weight:700;color:#111;">17</div><div style="font-size:11px;color:#9ca3af;margin-top:2px;">Key Accounts</div></div>
-            <div style="width:1px;background:#e5e7eb;"></div>
-            <div><div style="font-size:20px;font-weight:700;color:#111;">6+</div><div style="font-size:11px;color:#9ca3af;margin-top:2px;">Dashboards Built</div></div>
-          </div>
-
-          <div style="margin: 20px 0; padding: 20px; background: #f0f7ff; border-left: 4px solid #2563eb; border-radius: 4px;">
-            <h4 style="font-size: 15px; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-              🚀 Technical Challenge: The SAP Data Transformation
-            </h4>
-            <div style="font-size: 14px; color: #374151;">
-              <p style="margin-bottom: 8px;"><strong>Situation:</strong> ข้อมูลดิบจาก SAP เป็นรหัสตัวเลข (Raw Codes) ทั้งหมด เช่น Customer ID, SKU ID ซึ่งยากต่อการตีความ</p>
-              <p style="margin-bottom: 8px;"><strong>Task:</strong> ลดเวลาที่ทีมขายต้องนั่งแปลรหัส และกำจัดความผิดพลาดในการทำรายงาน</p>
-              <p style="margin-bottom: 8px;"><strong>Action:</strong> 
-                <ul style="margin-left: 20px; margin-top: 4px;">
-                  <li>สร้างระบบ Master Data Mapping ด้วย <code>XLOOKUP</code> และ <code>INDEX/MATCH</code> เพื่อเชื่อมโยงชื่อลูกค้าและกลุ่มสินค้าอัตโนมัติ</li>
-                  <li>ทำ Data Cleansing เพื่อให้ยอดขายราย Key Account (เช่น MAKRO, Lotus's) ถูกต้องแม่นยำ 100%</li>
-                </ul>
-              </p>
-              <p><strong>Result:</strong> 
-                <span style="color: #059669; font-weight: 600;">Efficiency:</span> ลดเวลาเตรียม Report จากหลายชั่วโมงเหลือเพียงการกด Refresh | 
-                <span style="color: #059669; font-weight: 600;">Accuracy:</span> ข้อมูลแม่นยำสูงเพราะใช้ Primary Key จาก SAP แทนการพิมพ์มือ
-              </p>
-            </div>
-          </div>
-
-          <div class="project-desc">Built from scratch outside work hours. A fully interactive dashboard with KPI cards, Year-over-Year comparison, category breakdown, target vs actual tracking, and Dark/Light mode toggle.</div>
-          <div class="project-tags">
-            <span class="project-tag">Chart.js</span>
-            <span class="project-tag">YoY Analysis</span>
-            <span class="project-tag">Forecasting</span>
-            <span class="project-tag">KPI Tracking</span>
-            <span class="project-tag">Dark Mode</span>
-          </div>
-        </div>
-      </div>
-
+      
       <!-- Project 2: Looker Studio -->
       <div class="project-card">
         <img class="project-img" src="https://raw.githubusercontent.com/thanabanps/thanaban-portfolio-dataanalyst/main/images/looker-sales-kpi.png" alt="Looker Studio Dashboard" onclick="openLightbox(this)">
@@ -339,6 +290,24 @@ footer { padding: 24px 0; text-align: center; color: #9ca3af; font-size: 13px; b
             <span class="project-tag">Heatmap Table</span>
             <span class="project-tag">Order Tracking</span>
             <span class="project-tag">Logistics Planning</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 5: SAP -->
+      <div class="project-card">
+        <div class="project-body" style="padding: 28px 24px;">
+          <div class="project-meta">
+            <span class="project-type">SAP ERP</span>
+          </div>
+          <div class="project-title">SAP Data Extraction & Transformation</div>
+          <div class="project-desc">Pulled raw data from SAP, cleaned it, and decoded numeric codes into readable product and customer names. This structured dataset became the foundation for all reporting and dashboard work — connecting order data, customer master data, and inventory across teams.</div>
+          <div class="project-tags">
+            <span class="project-tag">SAP ERP</span>
+            <span class="project-tag">Excel</span>
+            <span class="project-tag">Google Sheets</span>
+            <span class="project-tag">Data Cleaning</span>
+            <span class="project-tag">ETL</span>
           </div>
         </div>
       </div>
