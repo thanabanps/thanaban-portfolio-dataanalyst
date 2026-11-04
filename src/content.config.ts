@@ -46,7 +46,10 @@ const projects = defineCollection({
     cover: z.string().optional(),
     gallery: z.array(z.object({ src: z.string(), caption: z.string() })).default([]),
     stats: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
-    demo: z.string().url().optional(),
+    /** Full URL, or a path under /public such as "demos/my-tool.html". */
+    demo: z.string().optional(),
+    /** Downloadable sample input for a demo, e.g. "demos/sample.xlsx". */
+    sample: z.string().optional(),
     repo: z.string().url().optional(),
   }),
 });

@@ -30,6 +30,7 @@ const facts = [
   ['TIMELINE', p.timeline],
 ].filter(([, v]) => v);
 const num = String(index + 1).padStart(2, '0');
+const link = (x: string) => (/^https?:\/\//.test(x) ? x : url(x));
 ---
 <Base title={p.title} description={p.summary} current="work">
   <section class="band">
@@ -47,6 +48,11 @@ const num = String(index + 1).padStart(2, '0');
         <dl class="facts" style="margin:0">
           {facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
+      )}
+      {p.demo && (
+        <div style="margin-top:32px">
+          <a href={link(p.demo)} class="btn btn-yellow lift" target="_blank" rel="noopener">TRY LIVE DEMO →</a>
+        </div>
       )}
     </div>
   </section>
@@ -96,12 +102,14 @@ const num = String(index + 1).padStart(2, '0');
           </>
         )}
         {(p.demo || p.repo) && (
-          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:48px">
-            {p.demo && <a href={p.demo} class="btn btn-yellow lift">TRY LIVE DEMO →</a>}
+          <div style={`display:flex;gap:16px;flex-wrap:wrap;${p.gallery.length > 0 ? 'margin-top:48px' : ''}`}>
+            {p.demo && <a href={link(p.demo)} class="btn btn-yellow lift" target="_blank" rel="noopener">TRY LIVE DEMO →</a>}
+            {p.sample && <a href={link(p.sample)} class="btn lift" download>DOWNLOAD SAMPLE EXCEL</a>}
             {p.repo && <a href={p.repo} class="btn lift">VIEW ON GITHUB</a>}
           </div>
         )}
-        {p.demo && <p class="muted" style="margin:16px 0 0;font-size:14px">Demo runs on simulated data. Numbers do not reflect any real company.</p>}
+        {p.sample && <p class="muted" style="margin:16px 0 0;font-size:14px">Open the demo, then drop the sample Excel file into it to generate a dashboard.</p>}
+        {p.demo && <p class="muted" style="margin:8px 0 0;font-size:14px">Demo runs on simulated data. Names and numbers do not reflect any real company.</p>}
       </div>
     </section>
   )}
