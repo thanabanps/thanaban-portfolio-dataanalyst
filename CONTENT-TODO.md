@@ -3,14 +3,13 @@
 Things the site still needs from you. Delete a line once it's done.
 
 - `claude-for-data-guide.md` — add contents, format and how many people used it.
-- `dc-coverage-map.md` — add the problem, screenshots and details.
-- `looker-sales-kpi.md` — add demo link (simulated data version) and impact.
+- `looker-sales-kpi.md` — make a demo copy of the Looker report on simulated data (CSV provided in chat), then add its share link as `demo:` and a screenshot as `cover:`.
 - `online-channel-dashboard.md` — add stack, screenshots and details.
 - `price-intelligence.md` — add the problem, stack, screenshots and details.
 
 ## Everywhere
 
-- Screenshots, taken with **simulated data**. Done: MT Sales Dashboard, Sales Dashboard Generator, Daily Sales YoY, Daily Order Dashboard, Personal Taskboard. Save as `public/projects/<project-file-name>/cover.webp` and set `cover:` in the project file. Extra shots go in `gallery:`.
+- Screenshots, taken with **simulated data**. Done: MT Sales Dashboard, Sales Dashboard Generator, Daily Sales YoY, Daily Order Dashboard, Personal Taskboard, Delivery Planner, DC Shipment Map. Save as `public/projects/<project-file-name>/cover.webp` and set `cover:` in the project file. Extra shots go in `gallery:`.
 - An **Impact** section (`## Impact`) for each project: who uses it, how often, what it replaced, time saved.
 - `timeline:` for each project.
 - `src/site.ts` — add your LinkedIn URL and CV file (put the PDF in `public/`).

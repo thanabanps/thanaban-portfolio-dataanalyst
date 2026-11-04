@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delivery Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sb:#0f172a;--sb-hover:#1e293b;--sb-text:#64748b;--sb-active:#f1f5f9;--sb-ind:#818cf8;
+  --bg:#f1f5f9;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --t1:#0f172a;--t2:#475569;--t3:#94a3b8;
+  --accent:#6366f1;--accent-l:#eef2ff;--accent-t:#4338ca;
+  --lp:#1d4ed8;--lp-l:#dbeafe;--lp-t:#1e40af;
+  --wn:#7c3aed;--wn-l:#ede9fe;--wn-t:#5b21b6;
+  --done-bg:#f0fdf4;--done-b:#86efac;--done-t:#166534;
+  --r:10px;--r2:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Sarabun',system-ui,sans-serif}
+body{background:#0f172a;min-height:100vh;display:flex;align-items:stretch;min-width:900px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+.app{display:flex;width:100%;min-height:100vh;background:var(--bg)}
+
+/* ── Sidebar ── */
+aside{width:200px;flex-shrink:0;background:var(--sb);display:flex;flex-direction:column}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-icon{width:34px;height:34px;background:var(--sb-ind);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sb-brand{font-size:14px;font-weight:700;color:#f8fafc;letter-spacing:.2px;line-height:1.2}
+.sb-brand span{font-size:12px;color:var(--sb-text);font-weight:400;display:block}
+
+.sb-section{padding:16px 16px 6px;font-size:11px;font-weight:600;color:#334155;letter-spacing:.8px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;margin:1px 8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--sb-text);position:relative;transition:.15s}
+.nav-item:hover{background:var(--sb-hover);color:#94a3b8}
+.nav-item.active{background:var(--sb-hover);color:var(--sb-active)}
+.nav-item.active::before{content:'';position:absolute;left:-8px;top:8px;bottom:8px;width:3px;background:var(--sb-ind);border-radius:0 3px 3px 0}
+.nav-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nav-label{font-size:13px;font-weight:500}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:100vh}
+
+/* ── Topbar ── */
+.topbar{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0}
+.tb-title{font-size:14px;font-weight:700;color:var(--t1)}
+.tb-sep{color:var(--border2);font-size:14px}
+.tb-view{font-size:13px;color:var(--t3);font-weight:500}
+.tb-right{margin-left:auto;display:flex;gap:8px}
+.tb-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--t2);font-family:inherit;transition:.15s}
+.tb-btn:hover{border-color:var(--border2);background:var(--bg)}
+.tb-btn.primary{background:var(--t1);color:#fff;border-color:var(--t1)}
+.tb-btn.primary:hover{background:#1e293b}
+.tb-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── Stats sub-header ── */
+.statsbar{height:40px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:0;flex-shrink:0}
+.sb2-stat{display:flex;align-items:center;gap:7px;padding:0 18px;font-size:13px;color:var(--t2)}
+.sb2-stat:first-child{padding-left:0}
+.sb2-stat svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;color:var(--t3)}
+.sb2-stat span{color:var(--t3);font-size:12px}
+.sb2-stat b{font-size:16px;font-weight:700;color:var(--t1)}
+.sb2-stat.stat-pend svg,.sb2-stat.stat-pend span{color:#d97706}
+.sb2-stat.stat-pend b{color:#92400e}
+.sb2-stat.stat-done svg,.sb2-stat.stat-done span{color:#16a34a}
+.sb2-stat.stat-done b{color:#14532d}
+.sb2-div{width:1px;height:20px;background:var(--border);flex-shrink:0}
+
+/* ── Filterbar ── */
+.filterbar{height:46px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:6px;flex-shrink:0}
+.fb-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-right:2px;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--t2);transition:.15s;font-family:inherit;white-space:nowrap}
+.pill:hover:not(.active){background:var(--bg);border-color:var(--border2)}
+.pill.active{color:#fff;border-color:transparent}
+.pill.p-all.active{background:var(--t1)}
+.pill.p-lp.active{background:var(--lp)}
+.pill.p-wn.active{background:var(--wn)}
+.pill .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fb-div{width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0}
+.fb-sel{border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:500;background:var(--surface);color:var(--t2);cursor:pointer;outline:none;font-family:inherit;transition:.15s}
+.fb-sel:hover{border-color:var(--border2)}
+
+/* ── Views ── */
+.views{flex:1;overflow:hidden;position:relative}
+.view{position:absolute;inset:0;display:none;overflow:hidden}
+.view.active{display:flex}
+
+/* ── Kanban ── */
+.kb-wrap{overflow-x:auto;overflow-y:hidden;display:flex;gap:12px;padding:16px;height:100%;align-items:flex-start}
+.kb-col{width:212px;flex-shrink:0;display:flex;flex-direction:column}
+.kb-col-hdr{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.kb-date{font-size:14px;font-weight:700;color:var(--t1)}
+.kb-meta{font-size:12px;color:var(--t3);margin-top:3px}
+.kb-cards{display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100% - 54px);padding-right:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-left-width:3.5px;border-radius:var(--r2);padding:11px 12px;transition:.15s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);transform:translateY(-1px)}
+.card.done{background:var(--done-bg);border-color:var(--done-b)}
+.card.done{border-left-color:var(--done-b)!important}
+.c-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:6px}
+.c-tags{display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex:1;min-width:0}
+.c-ref{font-size:12px;color:var(--t3);margin-bottom:5px}
+.c-bot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.c-boxes{font-size:12px;color:var(--t2);white-space:nowrap}
+.c-boxes b{font-weight:700;color:var(--t1)}
+
+/* ── Pivot ── */
+.pv-wrap{overflow:auto;width:100%;height:100%}
+.pv-table{border-collapse:collapse;font-size:13px;min-width:100%}
+.pv-table thead tr{position:sticky;top:0;z-index:2}
+.pv-table th{background:var(--surface);padding:11px 16px;font-weight:600;color:var(--t2);border-bottom:2px solid var(--border);white-space:nowrap;font-size:12px;letter-spacing:.2px}
+.pv-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;min-width:220px}
+.pv-table th:not(:first-child){text-align:right;min-width:120px}
+.pv-table td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--t3);font-size:13px;transition:background .1s}
+.pv-table td:first-child{text-align:left;color:var(--t1);font-weight:500;position:sticky;left:0;background:var(--surface);z-index:1}
+.pv-table td:not(:first-child){text-align:right}
+.pv-table td.has{color:var(--t1);font-weight:700}
+.pv-table td.sum-col{background:var(--bg);font-weight:700;color:var(--t1)}
+.pv-table tr.foot{background:var(--bg);position:sticky;bottom:0;border-top:2px solid var(--border2)}
+.pv-table tr.foot td{font-weight:700;color:var(--t1);padding:11px 16px}
+.pv-table tr.foot td:first-child{background:var(--bg)}
+.pv-table tbody tr:hover td{background:#fafafa}
+.pv-table tbody tr:hover td:first-child{background:#fafafa}
+.pv-table tbody tr.foot:hover td{background:var(--bg)}
+
+/* ── Side list (panel+store) ── */
+.side-list{width:172px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface)}
+.side-hdr{padding:11px 14px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.side-body{overflow-y:auto;flex:1}
+.date-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);border-left:3px solid transparent;transition:.1s}
+.date-item:hover{background:var(--bg)}
+.date-item.active{background:var(--accent-l);border-left-color:var(--accent)}
+.di-name{font-size:13px;font-weight:600;color:var(--t1)}
+.date-item.active .di-name{color:var(--accent-t)}
+.di-sub{font-size:12px;color:var(--t3);margin-top:2px}
+
+/* ── ราย PO ── */
+.po-right{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.pcard.done{background:var(--done-bg);border-color:var(--done-b)}
+.pcard-hdr{padding:12px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.pcard.done .pcard-hdr{border-bottom-color:var(--done-b)}
+.pcard-ref{font-size:12px;color:var(--t3);margin-left:auto}
+.pcard-body{padding:10px 14px}
+.pcard-sum{font-size:13px;color:var(--t2);margin-bottom:9px}
+.pcard-sum b{color:var(--t1);font-weight:700}
+.pi-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px dashed var(--border);color:var(--t2)}
+.pi-row:last-child{border-bottom:none}
+.pi-row b{color:var(--t1);font-weight:700}
+
+/* ── รายห้าง ── */
+.store-right{flex:1;display:flex;flex-direction:column;min-width:0}
+.store-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.store-cards{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.scard.done{background:var(--done-bg);border-color:var(--done-b)}
+.scard-hdr{padding:11px 14px;display:flex;align-items:center;gap:8px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.scard.done .scard-hdr{background:#dcfce7;border-bottom-color:var(--done-b)}
+.scard-meta{margin-left:auto;font-size:12px;color:var(--t3);display:flex;gap:10px;flex-wrap:wrap}
+.scard-meta b{color:var(--t2);font-weight:600}
+.scard-table{width:100%;border-collapse:collapse}
+.scard-table td{padding:8px 14px;font-size:13px;border-bottom:1px solid var(--border);color:var(--t2)}
+.scard-table td:last-child{text-align:right;font-weight:700;color:var(--t1)}
+.scard-table tr:last-child td{border-bottom:none}
+.scard-table tr.st-total{background:var(--bg)}
+.scard-table tr.st-total td{font-weight:700;color:var(--t1);border-top:1.5px solid var(--border2)}
+.scard.done .scard-table tr.st-total{background:#dcfce7}
+
+/* ── Components ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid;white-space:nowrap;line-height:1.4}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid}
+.tag-lp{background:var(--lp-l);color:var(--lp-t);border-color:#bfdbfe}
+.tag-wn{background:var(--wn-l);color:var(--wn-t);border-color:#ddd6fe}
+.tag .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* ── Toggle — bigger click area (fix #6) ── */
+.tog-wrap{display:inline-flex;align-items:center;gap:7px;cursor:pointer;padding:5px 8px;border-radius:8px;transition:background .15s;flex-shrink:0}
+.tog-wrap:hover{background:rgba(0,0,0,.05)}
+.tog{width:36px;height:20px;border-radius:99px;border:1.5px solid;position:relative;transition:.2s;flex-shrink:0}
+.tog-pend{background:#fef9c3;border-color:#f59e0b}
+.tog-done{background:#bbf7d0;border-color:#22c55e}
+.tog::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;top:1px;transition:.2s}
+.tog-pend::after{left:1px;background:#f59e0b}
+.tog-done::after{left:18px;background:#22c55e}
+.tog-lbl{font-size:12px;font-weight:700;min-width:44px}
+.tog-lbl-p{color:#b45309}
+.tog-lbl-d{color:var(--done-t)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside>
+  <div class="sb-logo">
+    <div class="sb-icon">
+      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 5 0 2 5v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    </div>
+    <div class="sb-brand">Delivery<span>Planner</span></div>
+  </div>
+
+  <div class="sb-section">มุมมอง</div>
+
+  <div class="nav-item active" onclick="setView('kanban',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+    <span class="nav-label">บอร์ด</span>
+  </div>
+  <div class="nav-item" onclick="setView('pivot',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+    <span class="nav-label">ตาราง</span>
+  </div>
+  <div class="nav-item" onclick="setView('panel',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+    <span class="nav-label">ราย PO</span>
+  </div>
+  <div class="nav-item" onclick="setView('store',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nav-label">รายห้าง</span>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="tb-title">แผนจัดส่ง</span>
+    <span class="tb-sep">/</span>
+    <span class="tb-view" id="view-label">บอร์ด</span>
+    <div class="tb-right">
+      <button class="tb-btn">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="tb-btn primary">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        อัปโหลด Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats sub-header -->
+  <div class="statsbar">
+    <div class="sb2-stat">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>PO ทั้งหมด</span><b id="s-all">9</b>
+    </div>
+    <div class="sb2-div"></div>
+    <div class="sb2-stat stat-pend">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>รอส่ง</span><b id="s-pend">7</b>
+    </div>
+    <div class="sb2-div"></div>
+    <div class="sb2-stat stat-done">
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>ส่งแล้ว</span><b id="s-done">2</b>
+    </div>
+    <div class="sb2-div"></div>
+    <div class="sb2-stat">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <span>กล่องรวม</span><b id="s-box">3,272</b>
+    </div>
+  </div>
+
+  <!-- Filterbar -->
+  <div class="filterbar">
+    <span class="fb-lbl">คลัง</span>
+    <button class="pill plant-pill p-all active" onclick="setPlant('all',this)">ทั้งหมด</button>
+    <button class="pill plant-pill p-lp" onclick="setPlant('lp',this)">
+      <span class="dot" style="background:var(--lp)"></span>บางนา
+    </button>
+    <button class="pill plant-pill p-wn" onclick="setPlant('wn',this)">
+      <span class="dot" style="background:var(--wn)"></span>รังสิต
+    </button>
+    <div class="fb-div"></div>
+    <select class="fb-sel" onchange="setSF('store',this.value)" id="sel-store">
+      <option value="all">ทุกห้าง</option>
+    </select>
+    <select class="fb-sel" onchange="setSF('status',this.value)">
+      <option value="all">ทุกสถานะ</option>
+      <option value="pending">รอส่ง</option>
+      <option value="done">ส่งแล้ว</option>
+    </select>
+  </div>
+
+  <!-- Views -->
+  <div class="views">
+    <div class="view active" id="v-kanban"><div class="kb-wrap" id="kb-wrap"></div></div>
+    <div class="view" id="v-pivot"><div class="pv-wrap"><table class="pv-table" id="pv-tbl"><thead></thead><tbody></tbody></table></div></div>
+    <div class="view" id="v-panel">
+      <div class="side-list"><div class="side-hdr">วันส่ง</div><div class="side-body" id="p-dates"></div></div>
+      <div class="po-right" id="p-right"></div>
+    </div>
+    <div class="view" id="v-store">
+      <div class="side-list"><div class="side-hdr">วันส่ง</div><div class="side-body" id="s-dates"></div></div>
+      <div class="store-right"><div class="store-tabs" id="s-tabs"></div><div class="store-cards" id="s-cards"></div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const SC={"MangoMart": {"bg": "#dbeafe", "b": "#93c5fd", "t": "#1e40af"}, "FreshWay Super": {"bg": "#dcfce7", "b": "#86efac", "t": "#166534"}, "Siam Value Store": {"bg": "#fef3c7", "b": "#fcd34d", "t": "#92400e"}, "QuickBuy 24": {"bg": "#ffedd5", "b": "#fdba74", "t": "#9a3412"}, "Golden Basket": {"bg": "#fce7f3", "b": "#f9a8d4", "t": "#9d174d"}, "Urban Grocer": {"bg": "#fee2e2", "b": "#fca5a5", "t": "#991b1b"}, "Riverside Market": {"bg": "#d1fae5", "b": "#6ee7b7", "t": "#065f46"}, "HappyHome Foods": {"bg": "#cffafe", "b": "#67e8f9", "t": "#155e75"}};
+const _day=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const ORDERS=[{"id": "PO-001", "ref": "890.43083137", "store": "Golden Basket", "d": 0, "plant": "lp", "status": "done", "boxes": 108, "items": [{"n": "Rice Garden Basil Chicken Rice 5kg", "b": 72}, {"n": "Snack Studio Banana Chips 5kg", "b": 36}]}, {"id": "PO-002", "ref": "890.44315878", "store": "MangoMart", "d": 0, "plant": "lp", "status": "pending", "boxes": 504, "items": [{"n": "Siam Spice Co. Seasoning Sauce 2kg", "b": 96}, {"n": "Sweet Oven Sponge Mix 2kg", "b": 144}, {"n": "Sweet Oven Pandan Paste 1L", "b": 240}, {"n": "Dim Sum Garden Chicken Nuggets 150g", "b": 24}]}, {"id": "PO-003", "ref": "880.40880573", "store": "Riverside Market", "d": 0, "plant": "lp", "status": "done", "boxes": 120, "items": [{"n": "CocoBay Lemongrass Drink 1L", "b": 120}]}, {"id": "PO-004", "ref": "880.46881400", "store": "Golden Basket", "d": 0, "plant": "wn", "status": "done", "boxes": 228, "items": [{"n": "Krua Baan Fish Sauce 100g", "b": 48}, {"n": "Tempura House Pancake Mix 1kg", "b": 72}, {"n": "Tasty Box Pad Thai Kit 1kg", "b": 84}, {"n": "CocoBay Chrysanthemum Tea 5kg", "b": 24}]}, {"id": "PO-005", "ref": "882.49294986", "store": "Siam Value Store", "d": 1, "plant": "wn", "status": "pending", "boxes": 108, "items": [{"n": "Lemongrass Lab Thai Milk Tea 300ml", "b": 48}, {"n": "Ocean Bowl Shrimp Dumplings 5kg", "b": 60}]}, {"id": "PO-006", "ref": "882.49829077", "store": "FreshWay Super", "d": 1, "plant": "wn", "status": "pending", "boxes": 144, "items": [{"n": "FrostBite Pork Gyoza 5kg", "b": 48}, {"n": "CocoBay Thai Milk Tea 700ml", "b": 96}]}, {"id": "PO-007", "ref": "890.44373079", "store": "Golden Basket", "d": 1, "plant": "wn", "status": "pending", "boxes": 24, "items": [{"n": "CrispyLab Pancake Mix 2kg", "b": 24}]}, {"id": "PO-008", "ref": "882.41150464", "store": "HappyHome Foods", "d": 1, "plant": "wn", "status": "pending", "boxes": 336, "items": [{"n": "Rice Garden Basil Chicken Rice 5kg", "b": 96}, {"n": "Krua Baan Green Curry Paste 300ml", "b": 120}, {"n": "Siam Spice Co. Green Curry Paste 5kg", "b": 120}]}, {"id": "PO-009", "ref": "882.49901692", "store": "Siam Value Store", "d": 2, "plant": "wn", "status": "pending", "boxes": 336, "items": [{"n": "Rice Garden Fried Rice Bowl 150g", "b": 96}, {"n": "CrispyLab Pancake Mix 2kg", "b": 144}, {"n": "Tempura House Pancake Mix 1kg", "b": 96}]}, {"id": "PO-010", "ref": "890.45960706", "store": "Riverside Market", "d": 2, "plant": "wn", "status": "pending", "boxes": 240, "items": [{"n": "Tempura House Pancake Mix 1kg", "b": 240}]}, {"id": "PO-011", "ref": "890.43356248", "store": "HappyHome Foods", "d": 2, "plant": "wn", "status": "pending", "boxes": 132, "items": [{"n": "Siam Spice Co. Seasoning Sauce 2kg", "b": 24}, {"n": "Sweet Oven Custard Powder 200g", "b": 24}, {"n": "CocoBay Thai Milk Tea 700ml", "b": 84}]}, {"id": "PO-012", "ref": "880.43086663", "store": "QuickBuy 24", "d": 2, "plant": "wn", "status": "pending", "boxes": 660, "items": [{"n": "Sweet Oven Pandan Paste 1L", "b": 240}, {"n": "FrostBite Pork Gyoza 5kg", "b": 120}, {"n": "Sweet Oven Sponge Mix 2kg", "b": 60}, {"n": "CrispyLab Pancake Mix 2kg", "b": 240}]}, {"id": "PO-013", "ref": "890.44267841", "store": "Siam Value Store", "d": 2, "plant": "wn", "status": "pending", "boxes": 396, "items": [{"n": "CocoBay Lemongrass Drink 1L", "b": 24}, {"n": "CocoBay Thai Milk Tea 700ml", "b": 144}, {"n": "Ocean Bowl Pork Gyoza 5kg", "b": 36}, {"n": "CocoBay Lemongrass Drink 1kg", "b": 192}]}, {"id": "PO-014", "ref": "882.43295061", "store": "Golden Basket", "d": 2, "plant": "lp", "status": "pending", "boxes": 132, "items": [{"n": "CocoBay Thai Milk Tea 700ml", "b": 96}, {"n": "Tasty Box Basil Chicken Rice 150g", "b": 36}]}, {"id": "PO-015", "ref": "880.47884241", "store": "HappyHome Foods", "d": 3, "plant": "lp", "status": "pending", "boxes": 240, "items": [{"n": "Sweet Oven Sponge Mix 150g", "b": 240}]}, {"id": "PO-016", "ref": "890.46615500", "store": "Urban Grocer", "d": 3, "plant": "lp", "status": "pending", "boxes": 312, "items": [{"n": "CocoBay Lemongrass Drink 1kg", "b": 36}, {"n": "Siam Spice Co. Suki Sauce 100g", "b": 96}, {"n": "Lemongrass Lab Thai Milk Tea 300ml", "b": 84}, {"n": "CrispyLab Pancake Mix 2kg", "b": 96}]}, {"id": "PO-017", "ref": "882.42471275", "store": "MangoMart", "d": 3, "plant": "lp", "status": "pending", "boxes": 48, "items": [{"n": "CrispyLab Karaage Mix 100g", "b": 48}]}, {"id": "PO-018", "ref": "890.46103370", "store": "MangoMart", "d": 3, "plant": "lp", "status": "pending", "boxes": 72, "items": [{"n": "CocoBay Thai Milk Tea 700ml", "b": 72}]}, {"id": "PO-019", "ref": "882.47191797", "store": "MangoMart", "d": 3, "plant": "wn", "status": "pending", "boxes": 324, "items": [{"n": "Siam Spice Co. Seasoning Sauce 2kg", "b": 144}, {"n": "Snack Studio Banana Chips 5kg", "b": 120}, {"n": "Tempura House Pancake Mix 1kg", "b": 36}, {"n": "CocoBay Lemongrass Drink 1kg", "b": 24}]}, {"id": "PO-020", "ref": "890.44804090", "store": "Golden Basket", "d": 3, "plant": "lp", "status": "pending", "boxes": 240, "items": [{"n": "CrispyLab Pancake Mix 2kg", "b": 48}, {"n": "Rice Garden Basil Chicken Rice 5kg", "b": 192}]}].map(o=>({...o,date:_day(o.d)}));
+const DATES=[0,1,2,3].map(_day);
+const VNAMES={kanban:'บอร์ด',pivot:'ตาราง',panel:'ราย PO',store:'รายห้าง'};
+const fN=n=>Math.round(n).toLocaleString('th-TH');
+const fD=s=>{const d=new Date(s+'T00:00:00');return ['อา','จ','อ','พ','พฤ','ศ','ส'][d.getDay()]+' '+d.getDate()+' '+['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()];};
+
+let S={view:'kanban',plant:'all',store:'all',status:'all',selDate:DATES[0],storeTab:'all',sMap:{}};
+
+const gSt=o=>S.sMap[o.id]||o.status;
+function gF(){return ORDERS.filter(o=>{
+  if(S.plant!=='all'&&o.plant!==S.plant)return false;
+  if(S.store!=='all'&&o.store!==S.store)return false;
+  if(S.status!=='all'&&gSt(o)!==S.status)return false;
+  return true;
+});}
+
+const mkB=s=>{const c=SC[s]||{bg:'#f3f4f6',b:'#d1d5db',t:'#374151'};return `<span class="badge" style="background:${c.bg};border-color:${c.b};color:${c.t}">${s}</span>`;};
+const mkT=p=>p==='lp'?'<span class="tag tag-lp"><span class="dot" style="background:var(--lp)"></span>บางนา</span>':'<span class="tag tag-wn"><span class="dot" style="background:var(--wn)"></span>รังสิต</span>';
+const mkTog=id=>{const done=gSt({id})==='done';return `<div class="tog-wrap" onclick="toggleSt('${id}')"><div class="tog ${done?'tog-done':'tog-pend'}"></div><span class="tog-lbl ${done?'tog-lbl-d':'tog-lbl-p'}">${done?'ส่งแล้ว':'รอส่ง'}</span></div>`;};
+
+function setView(v,el){
+  S.view=v;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-label').textContent=VNAMES[v];
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  render();
+}
+function setPlant(p,el){
+  S.plant=p;
+  /* fix #3 — only target plant pills */
+  document.querySelectorAll('.plant-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function setSF(k,v){S[k]=v;render();}
+function toggleSt(id){S.sMap[id]=gSt({id})==='done'?'pending':'done';render();}
+function selDate(d){S.selDate=d;S.storeTab='all';render();}
+function selSTab(t){S.storeTab=t;render();}
+
+function updateStats(f){
+  const done=f.filter(o=>gSt(o)==='done').length;
+  document.getElementById('s-all').textContent=f.length;
+  document.getElementById('s-pend').textContent=f.length-done;
+  document.getElementById('s-done').textContent=done;
+  document.getElementById('s-box').textContent=fN(f.reduce((s,o)=>s+o.boxes,0));
+}
+
+function render(){
+  const f=gF(); updateStats(f);
+  if(S.view==='kanban')renderKanban(f);
+  else if(S.view==='pivot')renderPivot(f);
+  else if(S.view==='panel')renderPanel(f);
+  else renderStore(f);
+}
+
+function renderKanban(f){
+  document.getElementById('kb-wrap').innerHTML=DATES.filter(d=>f.some(o=>o.date===d)).map(d=>{
+    const col=f.filter(o=>o.date===d);
+    const bx=col.reduce((s,o)=>s+o.boxes,0);
+    return `<div class="kb-col">
+      <div class="kb-col-hdr"><div class="kb-date">${fD(d)}</div><div class="kb-meta">${col.length} PO · ${fN(bx)} กล่อง</div></div>
+      <div class="kb-cards">${col.map(o=>{const done=gSt(o)==='done';const c=SC[o.store]||{b:'#9ca3af'};
+        return `<div class="card${done?' done':''}" style="border-left-color:${done?'var(--done-b)':c.b}">
+          <div class="c-top"><div class="c-tags">${mkB(o.store)}${mkT(o.plant)}</div></div>
+          <div class="c-ref">${o.ref}</div>
+          <div class="c-bot"><span class="c-boxes">📦 <b>${fN(o.boxes)}</b> กล่อง · ${o.items.length} รายการ</span>${mkTog(o.id)}</div>
+        </div>`;}).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPivot(f){
+  const dates=[...new Set(f.map(o=>o.date))].sort();
+  const pm={},pt={},dt={};
+  f.forEach(o=>o.items.forEach(it=>{
+    if(!pm[it.n])pm[it.n]={};pm[it.n][o.date]=(pm[it.n][o.date]||0)+it.b;
+    pt[it.n]=(pt[it.n]||0)+it.b;dt[o.date]=(dt[o.date]||0)+it.b;
+  }));
+  const prods=Object.keys(pm).sort((a,b)=>pt[b]-pt[a]);
+  const grand=dates.reduce((s,d)=>s+(dt[d]||0),0);
+  const tbl=document.getElementById('pv-tbl');
+  tbl.querySelector('thead').innerHTML=`<tr><th>สินค้า</th>${dates.map(d=>`<th>${fD(d)}</th>`).join('')}<th>รวม</th></tr>`;
+  tbl.querySelector('tbody').innerHTML=prods.map(p=>`<tr><td>${p}</td>${dates.map(d=>{const v=pm[p][d]||0;return `<td class="${v?'has':''}">${v?fN(v):'–'}</td>`;}).join('')}<td class="sum-col">${fN(pt[p])}</td></tr>`).join('')
+    +`<tr class="foot"><td>รวมทั้งหมด (กล่อง)</td>${dates.map(d=>`<td class="sum-col">${fN(dt[d]||0)}</td>`).join('')}<td class="sum-col">${fN(grand)}</td></tr>`;
+}
+
+function renderPanel(f){
+  const dates=[...new Set(f.map(o=>o.date))].sort();
+  if(!dates.includes(S.selDate))S.selDate=dates[0];
+  document.getElementById('p-dates').innerHTML=dates.map(d=>{const col=f.filter(o=>o.date===d);
+    return `<div class="date-item${S.selDate===d?' active':''}" onclick="selDate('${d}')"><div class="di-name">${fD(d)}</div><div class="di-sub">${col.length} PO · ${fN(col.reduce((s,o)=>s+o.boxes,0))} กล่อง</div></div>`;}).join('');
+  const col=f.filter(o=>o.date===S.selDate);
+  document.getElementById('p-right').innerHTML=col.length===0
+    ?'<div style="padding:40px;text-align:center;color:var(--t3);font-size:14px">ไม่มีข้อมูลในวันนี้</div>'
+    :col.map(o=>{const done=gSt(o)==='done';return `<div class="pcard${done?' done':''}">
+      <div class="pcard-hdr">${mkB(o.store)}${mkT(o.plant)}<span class="pcard-ref">${o.ref}</span>${mkTog(o.id)}</div>
+      <div class="pcard-body">
+        <div class="pcard-sum">📦 <b>${fN(o.boxes)}</b> กล่อง · ${o.items.length} รายการ</div>
+        ${o.items.map(it=>`<div class="pi-row"><span>${it.n}</span><b>${fN(it.b)} กล่อง</b></div>`).join('')}
+      </div></div>`;}).join('');
+}
+
+function renderStore(f){
+  const dates=[...new Set(f.map(o=>o.date))].sort();
+  if(!dates.includes(S.selDate))S.selDate=dates[0];
+  document.getElementById('s-dates').innerHTML=dates.map(d=>{const col=f.filter(o=>o.date===d);const ns=[...new Set(col.map(o=>o.store))].length;
+    return `<div class="date-item${S.selDate===d?' active':''}" onclick="selDate('${d}')"><div class="di-name">${fD(d)}</div><div class="di-sub">${ns} ห้าง</div></div>`;}).join('');
+  const col=f.filter(o=>o.date===S.selDate);
+  const sm={};col.forEach(o=>{if(!sm[o.store])sm[o.store]={orders:[],boxes:0,plants:new Set()};sm[o.store].orders.push(o);sm[o.store].boxes+=o.boxes;sm[o.store].plants.add(o.plant);});
+  const stores=Object.keys(sm).sort();
+  if(S.storeTab!=='all'&&!stores.includes(S.storeTab))S.storeTab='all';
+  document.getElementById('s-tabs').innerHTML=
+    `<button class="pill plant-pill p-all${S.storeTab==='all'?' active':''}" onclick="selSTab('all')">ทั้งหมด (${stores.length})</button>`
+    +stores.map(s=>{const c=SC[s]||{bg:'#f3f4f6',b:'#d1d5db',t:'#374151'};const isA=S.storeTab===s;
+      return `<button class="pill" onclick="selSTab('${s}')" style="${isA?'background:var(--t1);color:#fff;border-color:var(--t1)':`background:${c.bg};color:${c.t};border-color:${c.b}`}">${s}</button>`;}).join('');
+  const vis=S.storeTab==='all'?stores:[S.storeTab];
+  document.getElementById('s-cards').innerHTML=vis.map(s=>{
+    const sg=sm[s];const done=sg.orders.every(o=>gSt(o)==='done');
+    const im={};sg.orders.forEach(o=>o.items.forEach(it=>{im[it.n]=(im[it.n]||0)+it.b;}));
+    const items=Object.entries(im).sort((a,b)=>b[1]-a[1]);
+    return `<div class="scard${done?' done':''}">
+      <div class="scard-hdr">${mkB(s)}${[...sg.plants].map(mkT).join(' ')}<div class="scard-meta"><span>🧾 <b>${sg.orders.length}</b> PO</span><span><b>${items.length}</b> รายการ</span><span>📦 <b>${fN(sg.boxes)}</b> กล่อง</span></div></div>
+      <table class="scard-table">${items.map(([n,b])=>`<tr><td>${n}</td><td>${fN(b)} กล่อง</td></tr>`).join('')}<tr class="st-total"><td>รวม</td><td>${fN(sg.boxes)} กล่อง</td></tr></table>
+    </div>`;}).join('');
+}
+
+/* Init */
+const sel=document.getElementById('sel-store');
+[...new Set(ORDERS.map(o=>o.store))].sort().forEach(s=>{const op=document.createElement('option');op.value=s;op.textContent=s;sel.appendChild(op);});
+render();
+</script>
+</body>
+</html>
