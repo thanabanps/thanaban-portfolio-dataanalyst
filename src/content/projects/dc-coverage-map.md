@@ -10,6 +10,7 @@ stack: [JavaScript, SheetJS, SVG]
 builtWith: Claude (AI pair)
 tags: [map, logistics]
 cover: projects/dc-coverage-map/cover.webp
+coverCaption: "Map — click a DC to see its POs and products"
 gallery:
   - { src: projects/dc-coverage-map/table.webp, caption: "Table view — every line, sortable" }
   - { src: projects/dc-coverage-map/upload.webp, caption: "Upload version — drop in the Excel export" }

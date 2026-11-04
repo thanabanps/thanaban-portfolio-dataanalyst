@@ -1,7 +1,6 @@
 ---
 import { render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
-import Cover from '../../../components/Cover.astro';
 import { url } from '../../../site';
 import { getFolders, getProjects, projectsIn, folderOf, type Folder, type Project } from '../../../lib/content';
 
@@ -31,6 +30,11 @@ const facts = [
 ].filter(([, v]) => v);
 const num = String(index + 1).padStart(2, '0');
 const link = (x: string) => (/^https?:\/\//.test(x) ? x : url(x));
+/** Cover first, then gallery — shown together as one slider. */
+const slides = [
+  ...(p.cover ? [{ src: p.cover, caption: p.coverCaption ?? `${p.title} — main view` }] : []),
+  ...p.gallery,
+];
 ---
 <Base title={p.title} description={p.summary} current="work">
   <section class="band">
@@ -57,12 +61,39 @@ const link = (x: string) => (/^https?:\/\//.test(x) ? x : url(x));
     </div>
   </section>
 
-  {p.cover && (
+  {slides.length > 0 && (
     <section class="band" style={`background:${f.color}`}>
       <div class="wrap" style="padding-block:56px">
-        <div class="hero-shot">
-          <Cover src={p.cover} alt={`${p.title} — main screen`} color="#FFFFFF" icon={f.icon} eager />
+        <div class="carousel" data-carousel>
+          <div class="car-track" data-track tabindex="0" role="region" aria-roledescription="carousel" aria-label={`${p.title} screenshots`}>
+            {slides.map((s, i) => (
+              <figure class="car-slide" aria-label={`${i + 1} of ${slides.length}: ${s.caption}`}>
+                <button type="button" class="car-zoom" data-zoom={url(s.src)} aria-label={`Enlarge: ${s.caption}`}>
+                  <img src={url(s.src)} alt={s.caption} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+                </button>
+              </figure>
+            ))}
+          </div>
+          {slides.length > 1 && (
+            <>
+              <button type="button" class="car-nav car-prev" data-prev aria-label="Previous screenshot">←</button>
+              <button type="button" class="car-nav car-next" data-next aria-label="Next screenshot">→</button>
+            </>
+          )}
         </div>
+        <div class="car-meta">
+          <p class="car-caption" data-caption aria-live="polite">{slides[0].caption}</p>
+          {slides.length > 1 && <span class="car-count mono" data-count>1 / {slides.length}</span>}
+        </div>
+        {slides.length > 1 && (
+          <div class="car-thumbs" role="group" aria-label="Choose a screenshot">
+            {slides.map((s, i) => (
+              <button type="button" data-go={i} aria-label={`Show: ${s.caption}`} aria-current={i === 0 ? 'true' : 'false'}>
+                <img src={url(s.src)} alt="" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )}
@@ -83,26 +114,11 @@ const link = (x: string) => (/^https?:\/\//.test(x) ? x : url(x));
     </div>
   </section>
 
-  {(p.gallery.length > 0 || p.demo || p.repo) && (
+  {(p.demo || p.repo) && (
     <section class="band" style="background:var(--paper)">
-      <div class="wrap" style="padding-block:72px">
-        {p.gallery.length > 0 && (
-          <>
-            <p class="kicker" style="margin-bottom:28px">/ GALLERY</p>
-            <div class="gallery">
-              {p.gallery.map((g) => (
-                <figure>
-                  <button type="button" data-zoom={url(g.src)} aria-label={`Enlarge: ${g.caption}`}>
-                    <img src={url(g.src)} alt={g.caption} loading="lazy" decoding="async" />
-                  </button>
-                  <figcaption>{g.caption}</figcaption>
-                </figure>
-              ))}
-            </div>
-          </>
-        )}
+      <div class="wrap" style="padding-block:56px">
         {(p.demo || p.repo) && (
-          <div style={`display:flex;gap:16px;flex-wrap:wrap;${p.gallery.length > 0 ? 'margin-top:48px' : ''}`}>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
             {p.demo && <a href={link(p.demo)} class="btn btn-yellow lift" target="_blank" rel="noopener">TRY LIVE DEMO →</a>}
             {p.sample && <a href={link(p.sample)} class="btn lift" download>DOWNLOAD SAMPLE EXCEL</a>}
             {p.repo && <a href={p.repo} class="btn lift">VIEW ON GITHUB</a>}
@@ -126,6 +142,45 @@ const link = (x: string) => (/^https?:\/\//.test(x) ? x : url(x));
 </Base>
 
 <script>
+  // Screenshot slider: scroll-snap track + arrows, thumbnails, keyboard and swipe.
+  const track = document.querySelector<HTMLElement>('[data-track]');
+  if (track) {
+    const slides = [...track.children] as HTMLElement[];
+    const caption = document.querySelector<HTMLElement>('[data-caption]');
+    const count = document.querySelector<HTMLElement>('[data-count]');
+    const thumbs = [...document.querySelectorAll<HTMLButtonElement>('[data-go]')];
+    const prev = document.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = document.querySelector<HTMLButtonElement>('[data-next]');
+    let current = 0;
+    const go = (i: number) => {
+      const n = Math.max(0, Math.min(slides.length - 1, i));
+      track.scrollTo({ left: n * track.clientWidth, behavior: 'smooth' });
+    };
+    const sync = () => {
+      const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+      if (i === current && caption?.textContent) return;
+      current = i;
+      const img = slides[i]?.querySelector('img');
+      if (caption && img) caption.textContent = img.alt;
+      if (count) count.textContent = `${i + 1} / ${slides.length}`;
+      thumbs.forEach((t, k) => t.setAttribute('aria-current', String(k === i)));
+      thumbs[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      if (prev) prev.disabled = i === 0;
+      if (next) next.disabled = i === slides.length - 1;
+    };
+    let raf = 0;
+    track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); });
+    prev?.addEventListener('click', () => go(current - 1));
+    next?.addEventListener('click', () => go(current + 1));
+    thumbs.forEach((t) => t.addEventListener('click', () => go(Number(t.dataset.go))));
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); }
+    });
+    window.addEventListener('resize', () => track.scrollTo({ left: current * track.clientWidth }));
+    current = -1; sync();
+  }
+
   const dlg = document.querySelector<HTMLDialogElement>('[data-lightbox]');
   const img = dlg?.querySelector('img');
   document.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((b) => {

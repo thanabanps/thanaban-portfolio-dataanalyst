@@ -10,6 +10,7 @@ stack: [Python, JavaScript, Chart.js]
 builtWith: Claude (AI pair)
 tags: [dashboard, python]
 cover: projects/mt-sales-dashboard/cover.webp
+coverCaption: "Overview — KPIs, monthly trend, brand share and ranking"
 gallery:
   - { src: projects/mt-sales-dashboard/yoy.webp, caption: "Year-over-year comparison — by year, quarter or month" }
   - { src: projects/mt-sales-dashboard/category.webp, caption: "Category → brand → SKU pivot" }

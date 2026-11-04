@@ -10,6 +10,7 @@ stack: [JavaScript, SheetJS, Chart.js]
 builtWith: Claude (AI pair)
 tags: [generator, dashboard, privacy]
 cover: projects/sales-dashboard-generator/cover.webp
+coverCaption: "Generated: upload, check sheets, preview the dashboard"
 gallery:
   - { src: projects/sales-dashboard-generator/empty.webp, caption: "Before: upload the export and the tool checks every sheet it needs" }
   - { src: projects/daily-sales-yoy/cover.webp, caption: "The dashboard it generates" }

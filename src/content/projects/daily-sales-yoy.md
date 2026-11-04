@@ -7,6 +7,7 @@ summary: Day-by-day billing against the same point last year and the monthly tar
 stack: [JavaScript, Chart.js]
 tags: [dashboard]
 cover: projects/daily-sales-yoy/cover.webp
+coverCaption: "Cumulative billing vs last year, with the monthly target"
 gallery:
   - { src: projects/daily-sales-yoy/daily.webp, caption: "Switch from cumulative to daily billing" }
 demo: demos/daily-sales-yoy.html

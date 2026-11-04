@@ -44,6 +44,8 @@ const projects = defineCollection({
     builtWith: z.string().optional(),
     /** Path under /public, e.g. "projects/mt-sales-dashboard/cover.webp". */
     cover: z.string().optional(),
+    /** Caption for the cover in the screenshot slider. */
+    coverCaption: z.string().optional(),
     gallery: z.array(z.object({ src: z.string(), caption: z.string() })).default([]),
     stats: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
     /** Full URL, or a path under /public such as "demos/my-tool.html". */

@@ -9,6 +9,7 @@ stack: [HTML, JavaScript]
 builtWith: Claude (AI pair)
 tags: [planning, logistics]
 cover: projects/delivery-planner/cover.webp
+coverCaption: "Board — one column per delivery day"
 gallery:
   - { src: projects/delivery-planner/pivot.webp, caption: "Table — boxes per product per delivery day" }
   - { src: projects/delivery-planner/po.webp, caption: "By PO — every order with its items" }

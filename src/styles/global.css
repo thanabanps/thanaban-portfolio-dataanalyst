@@ -126,8 +126,6 @@ a:hover { color: #000; }
 .stat { background: var(--paper); border: var(--line); box-shadow: var(--shadow); padding: 22px; }
 .stat b { display: block; font-family: var(--mono); font-size: 40px; line-height: 1.1; }
 .stat span { font-family: var(--mono); font-size: 13px; font-weight: 600; text-transform: uppercase; }
-.hero-shot { border: var(--line); box-shadow: var(--shadow-lg); background: var(--paper); aspect-ratio: 16 / 9; overflow: hidden; }
-.hero-shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
 /* Markdown body of a case study: each ## becomes a numbered row */
 .prose { counter-reset: sec; }
@@ -144,11 +142,36 @@ a:hover { color: #000; }
 .prose ol.flow { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; counter-reset: none; }
 .prose code { font-family: var(--mono); background: var(--paper); border: 1px solid var(--ink); padding: 0 4px; font-size: .9em; }
 
-.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-.gallery figure { margin: 0; }
-.gallery button { padding: 0; border: var(--line); background: var(--paper); cursor: zoom-in; width: 100%; display: block; aspect-ratio: 16 / 10; overflow: hidden; }
-.gallery img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-.gallery figcaption { font-family: var(--mono); font-size: 12px; font-weight: 600; margin-top: 8px; }
+/* Screenshot slider on case study pages */
+.carousel { position: relative; }
+.car-track {
+  display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  border: var(--line); box-shadow: var(--shadow-lg); background: var(--paper); scrollbar-width: none;
+}
+.car-track::-webkit-scrollbar { display: none; }
+.car-slide { flex: 0 0 100%; margin: 0; aspect-ratio: 16 / 10; scroll-snap-align: start; }
+.car-zoom { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.car-zoom img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.car-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 52px; height: 52px;
+  border: var(--line); background: var(--yellow); box-shadow: 4px 4px 0 var(--ink);
+  font-family: var(--mono); font-size: 22px; font-weight: 700; cursor: pointer; color: var(--ink);
+}
+.car-prev { left: -26px; }
+.car-next { right: -26px; }
+.car-nav:disabled { background: var(--paper); opacity: .55; cursor: default; }
+.car-nav:not(:disabled):hover { transform: translate(-2px, calc(-50% - 2px)); box-shadow: 6px 6px 0 var(--ink); }
+.car-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 22px; }
+.car-caption { margin: 0; font-family: var(--mono); font-weight: 700; font-size: 15px; }
+.car-count { font-weight: 700; font-size: 14px; white-space: nowrap; }
+.car-thumbs { display: flex; gap: 12px; margin-top: 16px; overflow-x: auto; padding: 4px 6px 8px 0; }
+.car-thumbs button {
+  flex: 0 0 132px; aspect-ratio: 16 / 10; padding: 0; border: var(--line); background: var(--paper);
+  cursor: pointer; opacity: .6; transition: opacity .15s, box-shadow .15s, transform .15s;
+}
+.car-thumbs button:hover { opacity: 1; }
+.car-thumbs button[aria-current="true"] { opacity: 1; box-shadow: 4px 4px 0 var(--ink); transform: translate(-2px, -2px); }
+.car-thumbs img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 dialog.lightbox { border: var(--line); padding: 0; max-width: 92vw; max-height: 92vh; background: var(--paper); }
 dialog.lightbox::backdrop { background: rgba(0, 0, 0, .85); }
 dialog.lightbox img { max-width: 92vw; max-height: 86vh; }
@@ -163,8 +186,13 @@ dialog.lightbox form { position: absolute; top: 8px; right: 8px; }
   .facts > div { border-right: none; border-bottom: var(--line); }
   .facts > div:last-child { border-bottom: none; }
   .nav { gap: 16px; }
+  .car-prev { left: 8px; }
+  .car-next { right: 8px; }
+  .car-nav { width: 44px; height: 44px; }
+  .car-thumbs button { flex-basis: 96px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .lift, .folder-body { transition: none; }
+  .lift, .folder-body, .car-thumbs button { transition: none; }
+  .car-track { scroll-behavior: auto; }
 }

@@ -10,6 +10,7 @@ stack: [HTML, JavaScript]
 builtWith: Claude (AI pair)
 tags: [productivity]
 cover: projects/personal-taskboard/cover.webp
+coverCaption: "Board — Kanban columns with step progress"
 gallery:
   - { src: projects/personal-taskboard/list.webp, caption: "List — grouped by status, smart sort" }
   - { src: projects/personal-taskboard/calendar.webp, caption: "Calendar — tasks by due date" }

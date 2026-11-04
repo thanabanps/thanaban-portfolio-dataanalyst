@@ -8,6 +8,7 @@ stack: [JavaScript, SheetJS, Chart.js]
 builtWith: Claude (AI pair)
 tags: [dashboard, generator, logistics]
 cover: projects/daily-order-summary/cover.webp
+coverCaption: "Daily summary — delivery calendar, SKU ranking, customer share"
 demo: demos/daily-order-generator.html
 sample: demos/sample-sales-data.xlsx
 ---
