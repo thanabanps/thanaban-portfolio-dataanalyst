@@ -1,0 +1,117 @@
+---
+import Base from '../layouts/Base.astro';
+import FolderCard from '../components/FolderCard.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { SITE, url } from '../site';
+import { getFolders, getProjects, projectsIn, folderOf } from '../lib/content';
+
+const folders = await getFolders();
+const projects = await getProjects();
+const folderRank = (p: (typeof projects)[number]) => folders.findIndex((f) => f.id === p.data.folder.id);
+const featured = projects
+  .filter((p) => p.data.featured)
+  .sort((a, b) => folderRank(a) - folderRank(b) || a.data.order - b.data.order)
+  .slice(0, 3);
+const counts = folders.map((f) => ({ folder: f, count: projectsIn(f, projects).length }));
+const sqlName = (s: string) => s.replace(/-/g, '_');
+const toolbox = ['Python', 'SQL', 'Excel', 'SAP ERP', 'Looker Studio', 'JavaScript', 'Chart.js', 'SheetJS', 'Leaflet', 'Claude'];
+---
+<Base>
+  <section class="band">
+    <div class="wrap" style="padding-block:96px 88px;display:flex;gap:56px;align-items:center;flex-wrap:wrap">
+      <div style="flex:999 1 560px;min-width:0">
+        <p class="kicker" style="margin-bottom:20px">{SITE.tagline}</p>
+        <h1 class="h-display" style="margin-bottom:24px">I turn messy problems into tools people actually use.</h1>
+        <p class="lead" style="margin:0 0 36px">
+          Hi, I'm Thanaban ({SITE.nameThai}). I build whatever the job needs — dashboards, AI-built tools,
+          automations and web apps. Every project here solved a real problem at work.
+        </p>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <a href="#folders" class="btn btn-yellow lift">BROWSE THE FOLDERS →</a>
+          <a href={url('/about/')} class="btn lift">ABOUT ME</a>
+        </div>
+      </div>
+      <div style="flex:1 1 320px;min-width:0;background:var(--paper);border:var(--line);box-shadow:8px 8px 0 var(--ink)" aria-label="Project count by folder">
+        <div class="mono" style="background:var(--blue);border-bottom:var(--line);padding:10px 16px;font-size:13px;font-weight:600;display:flex;justify-content:space-between">
+          <span>WHOAMI.SQL</span><span aria-hidden="true">● ● ●</span>
+        </div>
+        <div class="mono" style="padding:22px 22px 26px;font-size:14px;line-height:2">
+          <div><span style="color:var(--purple)">SELECT</span> folder, <span style="color:var(--purple)">COUNT</span>(*)</div>
+          <div><span style="color:var(--purple)">FROM</span> my_work</div>
+          <div><span style="color:var(--purple)">GROUP BY</span> folder;</div>
+          <div style="border-top:2px dashed var(--ink);margin-top:14px;padding-top:14px;display:grid;grid-template-columns:1fr auto;row-gap:2px">
+            {counts.map(({ folder, count }) => (
+              <><span>{sqlName(folder.id)}</span><b>{count}</b></>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="folders" class="band band-pad">
+    <div class="wrap">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:48px">
+        <div>
+          <p class="kicker">/ THE FOLDERS</p>
+          <h2 class="h-section">Pick a folder.<br />Open the work.</h2>
+        </div>
+        <p class="muted" style="max-width:380px;margin:0">Each folder holds case studies — the problem, what I built, and what changed.</p>
+      </div>
+      <div class="grid-folders">
+        {counts.map(({ folder, count }, i) => <FolderCard folder={folder} index={i} count={count} />)}
+      </div>
+    </div>
+  </section>
+
+  {featured.length > 0 && (
+    <section class="band band-pad" style="background:var(--paper)">
+      <div class="wrap">
+        <p class="kicker">/ FEATURED</p>
+        <h2 class="h-section" style="margin-bottom:48px">Start here</h2>
+        <div class="grid-cards">
+          {featured.map((p) => <ProjectCard project={p} folder={folderOf(p, folders)} showFolder />)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section id="about" class="band band-pad">
+    <div class="wrap" style="display:flex;gap:56px;flex-wrap:wrap">
+      <div style="flex:999 1 520px;min-width:0">
+        <p class="kicker">/ ABOUT</p>
+        <h2 class="h-section" style="margin-bottom:24px">From sales ops to builder.</h2>
+        <p class="muted" style="font-size:17px;margin:0 0 16px">
+          I started in Modern Trade sales operations at a Thai food manufacturer. Most of what's here began
+          because I saw a team stuck on slow, manual work — and built something better.
+        </p>
+        <p class="muted" style="font-size:17px;margin:0 0 28px">
+          Today I work across data, AI, automation and web. I'm open to roles where building things that
+          save people time is the job.
+        </p>
+        <a href={url('/about/')} class="btn lift">FULL RESUME →</a>
+      </div>
+      <div style="flex:1 1 340px;min-width:0">
+        <p class="mono" style="font-size:13px;font-weight:700;margin:0 0 14px">TOOLBOX</p>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px">
+          {toolbox.map((t) => (
+            <li class="chip" style={t === 'Claude' ? 'background:var(--yellow)' : undefined}>{t.toUpperCase()}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="band" style="background:var(--blue)">
+    <div class="wrap band-pad" style="display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap">
+      <h2 class="h-display" style="font-size:clamp(36px,5vw,48px);flex:1 1 400px">Let's build something.</h2>
+      <div style="display:flex;flex-direction:column;gap:14px;flex:1 1 340px">
+        <a href={`mailto:${SITE.email}`} class="btn lift" style="justify-content:space-between"><span>EMAIL</span><span style="font-weight:600">{SITE.email}</span></a>
+        <a href={SITE.github} class="btn lift" style="justify-content:space-between"><span>GITHUB</span><span style="font-weight:600">@{SITE.github.split('/').pop()}</span></a>
+        {SITE.linkedin && (
+          <a href={SITE.linkedin} class="btn lift" style="justify-content:space-between"><span>LINKEDIN</span><span style="font-weight:600">PROFILE →</span></a>
+        )}
+      </div>
+    </div>
+  </section>
+</Base>

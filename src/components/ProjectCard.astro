@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Cover from './Cover.astro';
+import { url } from '../site';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  folder: CollectionEntry<'folders'>;
+  showFolder?: boolean;
+}
+const { project, folder, showFolder = false } = Astro.props;
+const p = project.data;
+---
+<a
+  href={url(`/work/${folder.id}/${project.id}/`)}
+  class="card lift"
+  data-tags={p.tags.join('|')}
+>
+  <div class="card-cover">
+    <Cover src={p.cover} alt={`${p.title} screenshot`} color={folder.data.color} icon={folder.data.icon} />
+  </div>
+  <div class="card-body">
+    <span class="tag" style={showFolder ? `background:${folder.data.color}` : undefined}>
+      {showFolder ? folder.data.title.toUpperCase() : p.type}
+    </span>
+    <h3 class="h-card">{p.title}</h3>
+    <p>{p.summary}</p>
+    {p.stack.length > 0 && <div class="card-stack">{p.stack.join(' · ')}</div>}
+  </div>
+</a>

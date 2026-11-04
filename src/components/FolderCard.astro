@@ -1,0 +1,22 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import { url } from '../site';
+
+interface Props { folder: CollectionEntry<'folders'>; index: number; count: number }
+const { folder, index, count } = Astro.props;
+const f = folder.data;
+const num = String(index + 1).padStart(2, '0');
+---
+<a href={url(`/work/${folder.id}/`)} class="folder">
+  <div class="folder-tab" style={`background:${f.color}`}>{num}</div>
+  <div class="folder-body" style={`background:${f.color}`}>
+    <Icon name={f.icon} />
+    <h3 class="h-card" style="font-size:26px">{f.title}</h3>
+    <p>{f.summary}</p>
+    <div class="folder-foot">
+      <span>{count === 0 ? 'COMING SOON' : `${count} PROJECT${count === 1 ? '' : 'S'}`}</span>
+      <span aria-hidden="true">OPEN →</span>
+    </div>
+  </div>
+</a>

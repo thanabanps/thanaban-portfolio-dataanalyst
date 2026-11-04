@@ -1,0 +1,132 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Cover from '../../../components/Cover.astro';
+import { url } from '../../../site';
+import { getFolders, getProjects, projectsIn, folderOf, type Folder, type Project } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const folders = await getFolders();
+  const projects = await getProjects();
+  return projects.map((project) => {
+    const folder = folderOf(project, folders);
+    const siblings = projectsIn(folder, projects);
+    const i = siblings.findIndex((p) => p.id === project.id);
+    const next = siblings.length > 1 ? siblings[(i + 1) % siblings.length] : undefined;
+    const index = folders.findIndex((f) => f.id === folder.id);
+    return { params: { folder: folder.id, project: project.id }, props: { project, folder, next, index } };
+  });
+}
+
+interface Props { project: Project; folder: Folder; next?: Project; index: number }
+const { project, folder, next, index } = Astro.props;
+const p = project.data;
+const f = folder.data;
+const { Content } = await render(project);
+const facts = [
+  ['ROLE', p.role],
+  ['STACK', p.stack.join(' · ')],
+  ['BUILT WITH', p.builtWith],
+  ['TIMELINE', p.timeline],
+].filter(([, v]) => v);
+const num = String(index + 1).padStart(2, '0');
+---
+<Base title={p.title} description={p.summary} current="work">
+  <section class="band">
+    <div class="wrap narrow" style="padding-block:56px 64px">
+      <nav aria-label="Breadcrumb" class="mono" style="font-size:13px;font-weight:600;margin-bottom:28px">
+        <a href={url('/')} style="text-decoration:none">HOME</a>{' / '}
+        <a href={url(`/work/${folder.id}/`)} style="text-decoration:none">{f.title.toUpperCase()}</a>{' / CASE STUDY'}
+      </nav>
+      <span class="tag" style={`background:${f.color};font-size:12px;padding:3px 10px;display:inline-block;margin-bottom:20px`}>
+        FOLDER {num} · {p.type}
+      </span>
+      <h1 class="h-display" style="margin-bottom:22px">{p.title}</h1>
+      <p class="lead" style="margin:0 0 36px;font-size:20px;max-width:720px">{p.summary}</p>
+      {facts.length > 0 && (
+        <dl class="facts" style="margin:0">
+          {facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+      )}
+    </div>
+  </section>
+
+  {p.cover && (
+    <section class="band" style={`background:${f.color}`}>
+      <div class="wrap" style="padding-block:56px">
+        <div class="hero-shot">
+          <Cover src={p.cover} alt={`${p.title} — main screen`} color="#FFFFFF" icon={f.icon} eager />
+        </div>
+      </div>
+    </section>
+  )}
+
+  {p.stats.length > 0 && (
+    <section class="band">
+      <div class="wrap narrow" style="padding-block:72px">
+        <div class="stats">
+          {p.stats.map((s) => <div class="stat"><b>{s.value}</b><span>{s.label}</span></div>)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="band">
+    <div class="wrap narrow prose" style="padding-block:72px">
+      <Content />
+    </div>
+  </section>
+
+  {(p.gallery.length > 0 || p.demo || p.repo) && (
+    <section class="band" style="background:var(--paper)">
+      <div class="wrap" style="padding-block:72px">
+        {p.gallery.length > 0 && (
+          <>
+            <p class="kicker" style="margin-bottom:28px">/ GALLERY</p>
+            <div class="gallery">
+              {p.gallery.map((g) => (
+                <figure>
+                  <button type="button" data-zoom={url(g.src)} aria-label={`Enlarge: ${g.caption}`}>
+                    <img src={url(g.src)} alt={g.caption} loading="lazy" decoding="async" />
+                  </button>
+                  <figcaption>{g.caption}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </>
+        )}
+        {(p.demo || p.repo) && (
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:48px">
+            {p.demo && <a href={p.demo} class="btn btn-yellow lift">TRY LIVE DEMO →</a>}
+            {p.repo && <a href={p.repo} class="btn lift">VIEW ON GITHUB</a>}
+          </div>
+        )}
+        {p.demo && <p class="muted" style="margin:16px 0 0;font-size:14px">Demo runs on simulated data. Numbers do not reflect any real company.</p>}
+      </div>
+    </section>
+  )}
+
+  <nav class="wrap mono" aria-label="More projects" style="padding-block:40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-weight:700">
+    <a href={url(`/work/${folder.id}/`)} style="text-decoration:none">← ALL {f.title.toUpperCase()}</a>
+    {next && <a href={url(`/work/${folder.id}/${next.id}/`)} style="text-decoration:none">NEXT: {next.data.title.toUpperCase()} →</a>}
+  </nav>
+
+  <dialog class="lightbox" data-lightbox>
+    <form method="dialog"><button class="btn btn-sm" aria-label="Close">✕</button></form>
+    <img alt="" />
+  </dialog>
+</Base>
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  const img = dlg?.querySelector('img');
+  document.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((b) => {
+    b.addEventListener('click', () => {
+      if (!dlg || !img) return;
+      img.src = b.dataset.zoom ?? '';
+      img.alt = b.querySelector('img')?.alt ?? '';
+      dlg.showModal();
+    });
+  });
+  dlg?.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+</script>

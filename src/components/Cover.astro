@@ -1,0 +1,14 @@
+---
+import Icon from './Icon.astro';
+import { url } from '../site';
+
+interface Props { src?: string; alt: string; color: string; icon: string; eager?: boolean }
+const { src, alt, color, icon, eager = false } = Astro.props;
+---
+{src ? (
+  <img src={url(src)} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" style={`background:${color}`} />
+) : (
+  <div class="cover-fallback" style={`background:${color}`} role="img" aria-label={alt}>
+    <Icon name={icon} size={56} />
+  </div>
+)}
