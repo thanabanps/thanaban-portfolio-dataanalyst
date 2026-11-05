@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Dashboard Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@500;700&family=Prompt:wght@500;700&display=swap');
+:root{--primary:#30a83c;--green-strong:#197e25;--mint:#defde4;--hot:#ce1736;--hot-soft:#fde8ec;--cold:#034eb1;--cold-soft:#e6eefa;--warm:#fb6001;--premium:#7457dd;--canvas:#f3f5f7;--surface:#fff;--ink:#000;--body:#6b6d70;--muted:#a7a9ac;--hairline:#dfe1e4;--warn-bg:#faf9ca;--warn-tx:#9f5c0c;--pill:540px;--lift:0 4px 12px rgba(11,22,44,.09)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;font-family:'Mulish','Prompt',sans-serif;font-weight:500;background:var(--canvas);color:var(--ink);font-size:14px}
+
+.topbar{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--hairline);position:sticky;top:0;z-index:100}
+.tl{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:9999px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px}
+.t-title{font-size:16px;font-weight:700;color:var(--ink)}
+.t-sub{font-size:12px;color:var(--body);margin-top:1px}
+.chip{font-size:14px;font-weight:700;padding:6px 14px;border-radius:var(--pill);background:var(--surface);color:var(--primary);border:1px solid var(--primary)}
+
+.main{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 56px)}
+
+/* Left */
+.panel{background:var(--surface);border-right:1px solid var(--hairline);padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.panel-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px}
+
+.upload-zone{border:1px dashed var(--muted);border-radius:8px;padding:24px 16px;text-align:center;background:var(--canvas);cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--primary);background:var(--mint)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:32px;margin-bottom:6px}
+.upload-main{font-size:14px;font-weight:700;color:var(--primary);margin-bottom:2px}
+.upload-sub{font-size:12px;color:var(--body)}
+.file-badge{margin-top:10px;display:none;font-size:14px;font-weight:700;color:var(--green-strong);background:var(--mint);border-radius:4px;padding:4px 8px}
+
+.sheet-check{display:flex;flex-direction:column;gap:8px}
+.sheet-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--hairline);font-size:14px}
+.sheet-name{font-weight:500;color:var(--ink)}
+.sheet-status{font-size:12px;padding:3px 8px;border-radius:4px;font-weight:700}
+.s-wait{background:var(--canvas);color:var(--body)}
+.s-ok{background:var(--mint);color:var(--green-strong)}
+.s-err{background:var(--hot-soft);color:var(--hot)}
+
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface);border:1px solid var(--hairline);border-radius:8px}
+.setting-label{font-size:14px;font-weight:500;color:var(--ink)}
+.setting-val{font-size:20px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums}
+
+.btn-gen{width:100%;height:44px;padding:0 14px;border-radius:var(--pill);border:none;cursor:pointer;background:var(--primary);color:#fff;font-family:inherit;font-size:14px;font-weight:700;transition:background .15s}
+.btn-gen:hover:not(:disabled){background:var(--green-strong)}
+.btn-gen:disabled{background:var(--hairline);color:var(--muted);cursor:not-allowed}
+
+.log-box{background:var(--canvas);border:1px solid var(--hairline);border-radius:8px;padding:12px;font-family:'Mulish','Prompt',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;max-height:180px;overflow-y:auto;display:none;flex-direction:column;gap:4px}
+.log-box.show{display:flex}
+.log-ok{color:var(--green-strong)}.log-err{color:var(--hot)}.log-info{color:var(--body)}.log-warn{color:var(--warn-tx)}
+
+/* Right */
+.preview-panel{display:flex;flex-direction:column;background:var(--canvas)}
+.preview-header{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between}
+.preview-title{font-size:14px;font-weight:700;color:var(--ink)}
+.preview-actions{display:flex;gap:8px}
+.btn-dl{height:36px;padding:0 14px;border-radius:var(--pill);border:none;cursor:pointer;background:var(--primary);color:#fff;font-family:inherit;font-size:14px;font-weight:700;transition:background .15s}
+.btn-dl:hover:not(:disabled){background:var(--green-strong)}
+.btn-dl:disabled{background:var(--hairline);color:var(--muted);cursor:not-allowed}
+.btn-new{height:36px;padding:0 12px;border-radius:var(--pill);border:1px solid var(--hairline);cursor:pointer;background:var(--surface);color:var(--ink);font-family:inherit;font-size:14px;font-weight:700;transition:border-color .15s}
+.btn-new:hover{border-color:var(--ink)}
+
+.frame-wrap{flex:1;position:relative;min-height:500px}
+.placeholder{position:absolute;inset:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--body);background:var(--surface);border:1px solid var(--hairline);border-radius:8px}
+.ph-icon{font-size:52px;opacity:.35}
+.ph-text{font-size:20px;font-weight:700;color:var(--ink)}
+.ph-sub{font-size:14px}
+#previewFrame{width:100%;height:100%;border:none;display:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tl">
+    <div class="logo">⚡</div>
+    <div>
+      <div class="t-title">Sales Dashboard Generator</div>
+      <div class="t-sub">แปลง Excel → Dashboard HTML อัตโนมัติ</div>
+    </div>
+  </div>
+  <div class="chip">เป้าหมาย 50M · <span id="monthChip">—</span></div>
+</div>
+
+<div class="main">
+  <div class="panel">
+
+    <div>
+      <div class="panel-title">1. อัปโหลดไฟล์ Excel</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept=".xlsx,.xls" id="fileInput" onchange="onFileSelect(this)">
+        <div class="upload-icon">📂</div>
+        <div class="upload-main">คลิกหรือลากไฟล์มาวาง</div>
+        <div class="upload-sub">รองรับ .xlsx เท่านั้น</div>
+        <div class="file-badge" id="fileBadge"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-title">2. ตรวจสอบ Sheets</div>
+      <div class="sheet-check">
+        <div class="sheet-row"><span class="sheet-name">📋 Sheet "Order"</span><span class="sheet-status s-wait" id="s-order">รอไฟล์</span></div>
+        <div class="sheet-row"><span class="sheet-name">📋 Sheet "PO"</span><span class="sheet-status s-wait" id="s-po">รอไฟล์</span></div>
+        <div class="sheet-row"><span class="sheet-name">📋 Sheet "Bill 2026"</span><span class="sheet-status s-wait" id="s-b26">รอไฟล์</span></div>
+        <div class="sheet-row"><span class="sheet-name">📋 Sheet "Bill 2025"</span><span class="sheet-status s-wait" id="s-b25">รอไฟล์</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-title">3. การตั้งค่า</div>
+      <div class="setting-row">
+        <div class="setting-label">🎯 เป้าหมายเดือน</div>
+        <div class="setting-val">฿50,000,000</div>
+      </div>
+    </div>
+
+    <button class="btn-gen" id="btnGen" disabled onclick="generate()">⚡ สร้าง Dashboard</button>
+
+    <div class="log-box" id="logBox"></div>
+
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-header">
+      <div class="preview-title">👁 Preview Dashboard</div>
+      <div class="preview-actions">
+        <button class="btn-new" onclick="resetAll()">↩ เริ่มใหม่</button>
+        <button class="btn-dl" id="btnDl" disabled onclick="downloadHTML()">⬇ Download HTML</button>
+      </div>
+    </div>
+    <div class="frame-wrap" id="frameWrap">
+      <div class="placeholder" id="placeholder">
+        <div class="ph-icon">📊</div>
+        <div class="ph-text">ยังไม่มี Dashboard</div>
+        <div class="ph-sub">อัปโหลด Excel แล้วกด "สร้าง Dashboard"</div>
+      </div>
+      <iframe id="previewFrame"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ State ══
+let wb = null, generatedHTML = null, outFile = 'dashboard.html';
+
+// ══ Upload ══
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); const f = e.dataTransfer.files[0]; if(f) processFile(f); });
+
+function onFileSelect(inp) { if(inp.files[0]) processFile(inp.files[0]); }
+
+function processFile(file) {
+  log('info', `📂 ${file.name}`);
+  outFile = file.name.replace(/\.[^.]+$/,'') + '_dashboard.html';
+  const badge = document.getElementById('fileBadge');
+  badge.style.display = 'block'; badge.textContent = '✓ ' + file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      // cellDates:true → date cells become JS Date objects
+      wb = XLSX.read(e.target.result, { type:'array', cellDates:true, cellNF:true });
+      checkSheets();
+    } catch(err) { log('err', '❌ ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function checkSheets() {
+  const map = { 'Order':'s-order', 'PO':'s-po', 'Bill 2026':'s-b26', 'Bill 2025':'s-b25' };
+  let ok = true;
+  for (const [n, id] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    const found = wb.SheetNames.includes(n);
+    el.textContent = found ? '✓ พบแล้ว' : '✗ ไม่พบ';
+    el.className = 'sheet-status ' + (found ? 's-ok' : 's-err');
+    if (!found) { log('err', `✗ ไม่พบ Sheet "${n}"`); ok = false; }
+    else log('ok', `✓ Sheet "${n}"`);
+  }
+  document.getElementById('btnGen').disabled = !ok;
+  if (ok) log('ok', '✅ พร้อมสร้าง Dashboard');
+}
+
+// ══ Logging ══
+function log(type, msg) {
+  const box = document.getElementById('logBox');
+  box.classList.add('show');
+  const d = document.createElement('div');
+  d.className = type === 'ok' ? 'log-ok' : type === 'err' ? 'log-err' : type === 'warn' ? 'log-warn' : 'log-info';
+  d.textContent = msg;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ══ SheetJS: get rows with numeric header offset ══
+function getRows(sheetName, headerRowIndex) {
+  const ws = wb.Sheets[sheetName];
+  // range: N means skip first N rows, row N+1 becomes header
+  return XLSX.utils.sheet_to_json(ws, {
+    range: headerRowIndex,
+    defval: null
+  });
+}
+
+// ══ Robust number parser ══
+function getNum(row, ...keys) {
+  for (const k of keys) {
+    const v = row[k];
+    if (v === null || v === undefined || v === '') continue;
+    if (typeof v === 'number' && !isNaN(v)) return v;
+    const n = parseFloat(String(v).replace(/,/g,''));
+    if (!isNaN(n)) return n;
+  }
+  return 0;
+}
+
+// ══ Robust date parser — handles Date object, serial number, string ══
+function parseExcelDate(v) {
+  if (!v) return null;
+  if (v instanceof Date && !isNaN(v)) return v;
+  if (typeof v === 'number') {
+    // Excel serial: XLSX with cellDates:false gives raw serial
+    // Convert: (serial - 25569) * 86400000 = ms since epoch
+    const ms = (v - 25569) * 86400000;
+    const d = new Date(ms);
+    if (!isNaN(d)) return d;
+  }
+  if (typeof v === 'string') {
+    // Try common formats
+    // yyyy-mm-dd, dd/mm/yyyy, mm/dd/yyyy, d-mmm-yyyy
+    let m;
+    m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+    m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) {
+      // Thai locale: dd/mm/yyyy
+      return new Date(+m[3], +m[2]-1, +m[1]);
+    }
+    m = v.match(/^(\d{1,2})-(\w{3})-(\d{4})/);
+    if (m) {
+      const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+      return new Date(+m[3], months[m[2]], +m[1]);
+    }
+    const d = new Date(v);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+function getDay(row, key='Billing Date') {
+  const d = parseExcelDate(row[key]);
+  return d ? d.getDate() : null;
+}
+
+function getMonth(row, key='Billing Date') {
+  const d = parseExcelDate(row[key]);
+  return d ? d.getMonth() + 1 : null;
+}
+
+// ══ Format helpers ══
+function fmtFull(v)  { return Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtM(v)     { return v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v/1e3)+'K'; }
+function fmtMv(v)    { return v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v/1e3)+'K'; }
+function fmtComma(v) { return Math.round(v).toLocaleString('th-TH'); }
+function fmtKPI(v)   { return v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v/1e3)+'K'; }
+
+// ══ Build cumulative arrays ══
+function buildCum26(raw, lastDay) {
+  let run = 0;
+  return Array.from({length:31}, (_,i) => {
+    const d = i+1;
+    if (d > lastDay) return null;
+    run = +(run + (raw[d]||0)).toFixed(2);
+    return run;
+  });
+}
+function buildCum25(raw) {
+  let run = 0;
+  return Array.from({length:31}, (_,i) => {
+    run = +(run + (raw[i+1]||0)).toFixed(2);
+    return run;
+  });
+}
+
+// ══ Main generate ══
+function generate() {
+  try {
+    log('info', '⚙️ เริ่มประมวลผล...');
+
+    // ── Order (header row index 4) ──
+    const orderRows = getRows('Order', 4);
+    const totalOrder = orderRows.reduce((s,r) => s + getNum(r,'Net Value (Item)'), 0);
+    const nItems = orderRows.length;
+    log('ok', `Order: ฿${fmtFull(totalOrder)} (${nItems} รายการ)`);
+
+    // ── PO (header row index 4) ──
+    const poRows = getRows('PO', 4);
+    const nBilled  = poRows.filter(r => String(r['สถานะบิล']||'').trim() === 'ออกบิลแล้ว').length;
+    const nPending = poRows.filter(r => String(r['สถานะบิล']||'').trim() !== 'ออกบิลแล้ว').length;
+    const billRate = nItems > 0 ? nBilled/nItems*100 : 0;
+    log('ok', `PO: ออกบิล ${nBilled} / ยังไม่ออก ${nPending} (${billRate.toFixed(1)}%)`);
+
+    // ── Bill 2026 (header row index 4) ──
+    const b26Rows = getRows('Bill 2026', 4);
+
+    // Debug: log first row keys to verify
+    if (b26Rows.length > 0) {
+      const firstKeys = Object.keys(b26Rows[0]).slice(0,8);
+      log('info', `Bill 2026 คอลัมน์: ${firstKeys.join(', ')}`);
+      const sampleDate = b26Rows[0]['Billing Date'];
+      log('info', `ตัวอย่างวันที่: ${sampleDate} (${typeof sampleDate})`);
+    }
+
+    const totalBill = b26Rows.reduce((s,r) => s + getNum(r,'Net Val(After Disc) THB'), 0);
+
+    const raw26 = {};
+    let parseFails = 0;
+    b26Rows.forEach(r => {
+      const d = getDay(r,'Billing Date');
+      if (d) raw26[d] = +(((raw26[d]||0) + getNum(r,'Net Val(After Disc) THB')).toFixed(2));
+      else parseFails++;
+    });
+
+    if (parseFails > 0) log('warn', `⚠️ parse วันที่ไม่ได้ ${parseFails} แถว`);
+    if (Object.keys(raw26).length === 0) {
+      log('err', '❌ ไม่สามารถอ่านวันที่จาก Bill 2026 ได้');
+      return;
+    }
+
+    const latestDay = Math.max(...Object.keys(raw26).map(Number));
+    const workdays  = Object.keys(raw26).length;
+
+    // ── Detect month from Bill 2026 ──
+    const thMonthFull = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    const thMonthShort= ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const daysInMonth = [0,31,28,31,30,31,30,31,31,30,31,30,31];
+    let detectedMonth = 5; // default May
+    for (const r of b26Rows) {
+      const dt = parseExcelDate(r['Billing Date']);
+      if (dt) { detectedMonth = dt.getMonth()+1; break; }
+    }
+    const monthFull  = thMonthFull[detectedMonth];
+    const monthShort = thMonthShort[detectedMonth];
+    const totalDays  = daysInMonth[detectedMonth];
+    log('info', `📅 ตรวจพบเดือน: ${monthFull} (เดือนที่ ${detectedMonth})`);
+    document.getElementById('monthChip').textContent = monthFull + ' 2569';
+
+    // Top 5 customers
+    const custMap = {};
+    b26Rows.forEach(r => {
+      const n = String(r['ToName']||'อื่นๆ').trim();
+      custMap[n] = +((custMap[n]||0) + getNum(r,'Net Val(After Disc) THB')).toFixed(2);
+    });
+    const top5Cust = Object.entries(custMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+    // Top 5 products
+    const prodMap = {};
+    b26Rows.forEach(r => {
+      const n = String(r['Item Description']||'อื่นๆ').trim();
+      prodMap[n] = +((prodMap[n]||0) + getNum(r,'Net Val(After Disc) THB')).toFixed(2);
+    });
+    const top20Prod = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).slice(0,20);
+
+    log('ok', `Bill 2026: ฿${fmtFull(totalBill)} · ${workdays} วัน · วันล่าสุด: ${latestDay}`);
+
+    // ── Bill 2025 (header row index 0) ──
+    const b25Rows = getRows('Bill 2025', 0);
+
+    if (b25Rows.length > 0) {
+      const sampleDate25 = b25Rows[0]['Billing Date'];
+      log('info', `Bill 2025 ตัวอย่างวันที่: ${sampleDate25} (${typeof sampleDate25})`);
+    }
+
+    const raw25 = {};
+    b25Rows.forEach(r => {
+      if (getMonth(r,'Billing Date') !== detectedMonth) return;
+      const d = getDay(r,'Billing Date');
+      if (d) raw25[d] = +((raw25[d]||0) + getNum(r,'Net Val(After Disc) THB')).toFixed(2);
+    });
+    const cum25ToDate = Object.entries(raw25)
+      .filter(([d]) => +d <= latestDay)
+      .reduce((s,[,v]) => s+v, 0);
+
+    log('ok', `Bill 2025 (${monthShort}): สะสม 1-${latestDay} = ฿${fmtFull(cum25ToDate)}`);
+
+    // ── Cumulative ──
+    const cum26 = buildCum26(raw26, latestDay, totalDays);
+    const cum25 = buildCum25(raw25, totalDays);
+
+    // ── Comparison ──
+    const pendingVal  = totalOrder - totalBill;
+    const diffVsPrev  = totalBill - cum25ToDate;
+    const yoyPct      = cum25ToDate > 0 ? diffVsPrev/cum25ToDate*100 : 0;
+    const pct26Width  = Math.min(totalBill/50000000*100, 100).toFixed(1);
+    const pct25Width  = Math.min(cum25ToDate/50000000*100, 100).toFixed(1);
+
+    log('info', '🎨 สร้าง HTML...');
+
+    generatedHTML = buildDashboard({
+      latestDay, workdays, monthFull, monthShort, totalDays,
+      totalOrder, nItems, avgOrder: nItems>0?totalOrder/nItems:0,
+      totalBill, nBilled, nPending, billRate, pendingVal,
+      top5Cust, top5Prod: top20Prod,
+      raw26, raw25, cum26, cum25,
+      cum25ToDate, diffVsPrev, yoyPct,
+      pct26Width, pct25Width,
+    });
+
+    showPreview(generatedHTML);
+    document.getElementById('btnDl').disabled = false;
+    log('ok', '✅ Dashboard พร้อมแล้ว!');
+
+  } catch(err) {
+    log('err', '❌ ' + err.message);
+    console.error(err);
+  }
+}
+
+// ══ Preview & Download ══
+function showPreview(html) {
+  document.getElementById('placeholder').style.display = 'none';
+  const frame = document.getElementById('previewFrame');
+  const blob = new Blob([html],{type:'text/html'});
+  frame.src = URL.createObjectURL(blob);
+  frame.style.display = 'block';
+  frame.style.height = document.getElementById('frameWrap').offsetHeight + 'px';
+}
+
+function downloadHTML() {
+  if (!generatedHTML) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([generatedHTML],{type:'text/html'}));
+  a.download = outFile;
+  a.click();
+  log('ok', `⬇ ${outFile}`);
+}
+
+function resetAll() {
+  wb = null; generatedHTML = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileBadge').style.display = 'none';
+  ['s-order','s-po','s-b26','s-b25'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent='รอไฟล์'; el.className='sheet-status s-wait';
+  });
+  document.getElementById('btnGen').disabled = true;
+  document.getElementById('btnDl').disabled = true;
+  document.getElementById('previewFrame').style.display = 'none';
+  document.getElementById('previewFrame').src = '';
+  document.getElementById('placeholder').style.display = 'flex';
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('logBox').classList.remove('show');
+}
+
+// ══ Dashboard HTML template ══
+function buildDashboard(p) {
+  const {latestDay,workdays,monthFull,monthShort,totalDays,totalOrder,nItems,avgOrder,totalBill,nBilled,nPending,billRate,pendingVal,top5Cust,top5Prod,raw26,raw25,cum26,cum25,cum25ToDate,diffVsPrev,yoyPct,pct26Width,pct25Width} = p;
+
+  const dateLabel  = `${latestDay} ${monthShort} 2569`;
+  const diffSign   = diffVsPrev >= 0 ? '+' : '-';
+  const diffLabel  = `${diffSign}${fmtMv(Math.abs(diffVsPrev))} vs ปีก่อน`;
+  const yoyLabel   = `${yoyPct>=0?'+':''}${yoyPct.toFixed(1)}% YoY`;
+  const yoySign    = yoyPct >= 0 ? '▲' : '▼';
+
+  const custL = JSON.stringify(top5Cust.map(c => c[0]));
+  const custD = JSON.stringify(top5Cust.map(c => Math.round(c[1])));
+  const custC = JSON.stringify(top5Cust.map((_,i)=>i===0?'#197e25':'#30a83c'));
+  const prodL = JSON.stringify(top5Prod.map(p => p[0]));
+  const prodD = JSON.stringify(top5Prod.map(p => Math.round(p[1])));
+  const prodC = JSON.stringify(top5Prod.map((_,i)=>i<3?'#197e25':'#30a83c'));
+  const r26   = JSON.stringify(Object.fromEntries(Object.entries(raw26).map(([k,v])=>[k,+v.toFixed(2)])));
+  const r25   = JSON.stringify(Object.fromEntries(Object.entries(raw25).map(([k,v])=>[k,+v.toFixed(2)])));
+  const c26   = JSON.stringify(cum26);
+  const c25   = JSON.stringify(cum25);
+  const dLbls = JSON.stringify(Array.from({length:totalDays},(_,i)=>(i+1<10?'0':'')+(i+1)+' '+monthShort));
+
+  return `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Dashboard — ${monthFull} 2569</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"><\/script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@500;700&family=Prompt:wght@500;700&display=swap');
+:root{--primary:#30a83c;--green-strong:#197e25;--mint:#defde4;--hot:#ce1736;--hot-soft:#fde8ec;--cold:#034eb1;--cold-soft:#e6eefa;--canvas:#f3f5f7;--surface:#fff;--ink:#000;--body:#6b6d70;--muted:#a7a9ac;--hairline:#dfe1e4;--warn-bg:#faf9ca;--warn-tx:#9f5c0c;--pill:540px;--lift:0 4px 12px rgba(11,22,44,.09)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100vh;overflow:hidden;font-family:'Mulish','Prompt',sans-serif;font-weight:500;background:var(--canvas);color:var(--ink);font-size:14px}
+.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.tl{display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;border-radius:9999px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px}
+.t-title{font-size:16px;font-weight:700;color:var(--ink)}.t-sub{font-size:12px;color:var(--body);margin-top:1px}
+.tr{display:flex;align-items:center;gap:8px}
+.chip{font-size:14px;font-weight:700;padding:5px 12px;border-radius:var(--pill);background:var(--surface);color:var(--ink);border:1px solid var(--hairline)}
+.chip-live{background:var(--mint);color:var(--green-strong);border-color:var(--mint);display:flex;align-items:center;gap:6px}
+.chip-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--primary);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.page{height:calc(100vh - 52px);display:flex;flex-direction:column;padding:12px 16px;gap:12px;overflow:hidden}
+.kpi-row{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--hairline);position:relative;overflow:hidden;transition:box-shadow .15s}
+.kpi:hover{box-shadow:var(--lift)}
+.kpi-icon{width:44px;height:44px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--canvas)}
+.kpi-body{min-width:0}
+.kv{font-size:24px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--ink)}
+.kpi-g .kv{color:var(--primary)}
+.kpi-g .kpi-icon{background:var(--mint)}
+.kpi-r .kv{color:var(--warn-tx)}
+.kpi-r .kpi-icon{background:var(--warn-bg)}
+.kl{font-size:14px;color:var(--ink);margin-top:2px;font-weight:700}
+.ks{font-size:12px;color:var(--body);margin-top:2px}
+.kbadge{display:inline-block;font-size:12px;font-weight:700;padding:2px 6px;border-radius:4px;margin-right:4px}
+.kbadge-mint{background:var(--mint);color:var(--green-strong)}
+.kbadge-warn{background:var(--warn-bg);color:var(--warn-tx)}
+.main-area{flex:1 1 0;min-height:0;display:flex;gap:12px}
+.left-panel{flex:2 1 0;min-height:0;display:flex;flex-direction:column;gap:12px}
+.trend-card{flex:1;min-height:0;background:var(--surface);border-radius:8px;border:1px solid var(--hairline);padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.trend-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ct{font-size:16px;font-weight:700;color:var(--ink)}.cs{font-size:12px;color:var(--body);margin-top:2px}
+.tgl{display:flex;background:var(--surface);border-radius:var(--pill);padding:2px;border:1px solid var(--hairline)}
+.tgl-btn{font-family:inherit;font-size:14px;font-weight:700;padding:5px 14px;border-radius:var(--pill);background:transparent;color:var(--body);border:none;cursor:pointer;transition:background .15s,color .15s}
+.tgl-btn.active{background:var(--primary);color:#fff}
+.trend-leg{flex:0 0 auto;display:flex;gap:16px}
+.tleg{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink)}
+.tleg-ln{width:22px;height:3px;border-radius:2px;flex-shrink:0}
+.chart-area{flex:1 1 0;min-height:0;position:relative}
+.bottom-2col{flex:0 0 265px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.right-panel{flex:1 1 0;min-height:0;background:var(--surface);border-radius:8px;border:1px solid var(--hairline);padding:12px 16px;display:flex;flex-direction:column;overflow:hidden}
+.right-panel .b-area{flex:none;height:680px;position:relative;overflow-y:auto}
+.b-card{background:var(--surface);border-radius:8px;border:1px solid var(--hairline);padding:12px 16px;display:flex;flex-direction:column;min-height:0}
+.b-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.b-title{font-size:14px;font-weight:700;color:var(--ink)}.b-sub{font-size:12px;color:var(--body);margin-top:2px}
+.b-chip{font-size:12px;padding:2px 8px;border-radius:4px;background:var(--canvas);color:var(--body);white-space:nowrap;flex-shrink:0;font-weight:700}
+.b-area{flex:1 1 0;min-height:0;position:relative}
+.b-card-prog{justify-content:space-between;gap:8px}
+.prog-totals{display:flex;gap:8px;flex-shrink:0}
+.prog-yr-block{flex:1;text-align:center;border:1px solid var(--hairline);border-radius:8px;padding:6px 4px}
+.prog-yr-label{font-size:12px;font-weight:700;color:var(--body);margin-bottom:2px}
+.prog-yr-box{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25}
+.prog-yr-box.red{color:var(--cold)}.prog-yr-box.grn{color:var(--primary)}
+.prog-section{flex-shrink:0}
+.prog-target-t{font-size:12px;font-weight:700;color:var(--body);text-align:center;margin-bottom:8px}
+.prog-bars{display:flex;flex-direction:column;gap:6px}
+.prog-row{display:flex;align-items:center;gap:8px}
+.prog-yr-tag{font-size:12px;font-weight:700;width:36px;text-align:right;flex-shrink:0}
+.p26{color:var(--primary)}.p25{color:var(--cold)}
+.prog-track{flex:1;height:14px;background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--pill);overflow:hidden}
+.prog-fill{height:100%;border-radius:var(--pill);transition:width 1s ease-out}
+.pfill26{background:var(--primary)}.pfill25{background:var(--cold)}
+.prog-val{font-size:14px;font-weight:700;width:44px;font-variant-numeric:tabular-nums;flex-shrink:0}
+.prog-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;padding:0 52px 0 44px}
+.prog-sep{height:1px;background:var(--hairline);flex-shrink:0}
+.prog-foot{display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0}
+.tag-green{font-size:14px;font-weight:700;color:var(--green-strong);background:var(--mint);border-radius:4px;padding:4px 8px}
+.tag-red{font-size:14px;font-weight:700;color:var(--hot);background:var(--hot-soft);border-radius:4px;padding:4px 8px}
+.temp{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--pill);padding:4px 12px;font-variant-numeric:tabular-nums}
+.temp .dn{color:var(--cold)}.temp .up{color:var(--primary)}.temp .dim{color:var(--hairline)}
+.temp .v-up{color:var(--green-strong)}.temp .v-dn{color:var(--hot)}
+
+  /* right-panel internal scroll */
+  .right-panel .b-area::-webkit-scrollbar{width:4px}
+  .right-panel .b-area::-webkit-scrollbar-track{background:transparent}
+  .right-panel .b-area::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl">
+    <div class="logo">📊</div>
+    <div><div class="t-title">Sales Intelligence Dashboard</div><div class="t-sub">Bill 2026 vs Bill 2025</div></div>
+  </div>
+  <div class="tr">
+    <div class="chip">${monthFull} 2569</div>
+    <div class="chip chip-live">ข้อมูล ณ ${dateLabel}</div>
+  </div>
+</div>
+<div class="page">
+  <div class="kpi-row">
+    <div class="kpi kpi-b"><div class="kpi-icon">📦</div><div class="kpi-body"><div class="kv">${fmtKPI(totalOrder)}</div><div class="kl">ยอดสั่งซื้อรวม</div><div class="ks">${nItems.toLocaleString()} รายการ · เฉลี่ย ${fmtComma(avgOrder)}</div></div></div>
+    <div class="kpi kpi-g"><div class="kpi-icon">✅</div><div class="kpi-body"><div class="kv">${fmtKPI(totalBill)}</div><div class="kl">ยอดออกบิลแล้ว 2026</div><div class="ks">${workdays} วันทำการ</div></div></div>
+    <div class="kpi kpi-a"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kv">${billRate.toFixed(1)}%</div><div class="kl">อัตราออกบิล</div><div class="ks"><span class="kbadge kbadge-mint">${nBilled}</span>จาก ${nItems.toLocaleString()} รายการ</div></div></div>
+    <div class="kpi kpi-r"><div class="kpi-icon">⏳</div><div class="kpi-body"><div class="kv">${fmtKPI(pendingVal)}</div><div class="kl">ยังไม่ออกบิล</div><div class="ks"><span class="kbadge kbadge-warn">${nPending}</span>รายการ (${(100-billRate).toFixed(1)}%)</div></div></div>
+  </div>
+  <div class="main-area">
+    <!-- Left: line chart + 2-col bottom -->
+    <div class="left-panel">
+      <div class="trend-card">
+        <div class="trend-head">
+          <div><div class="ct" id="trendTitle">ยอดออกบิลสะสม — ${monthFull} 2026 เทียบ 2025</div><div class="cs">Net Val After Disc THB · 2025 เต็มเดือน · 2026 = ${workdays} วันทำการ</div></div>
+          <div class="tgl">
+            <button id="btnCum" class="tgl-btn active" onclick="setMode('cum')">ยอดสะสม</button>
+            <button id="btnDay" class="tgl-btn" onclick="setMode('day')">ยอดรายวัน</button>
+          </div>
+        </div>
+        <div class="trend-leg">
+          <div class="tleg"><div class="tleg-ln" style="background:#30a83c"></div>${monthShort} 2026</div>
+          <div class="tleg"><div class="tleg-ln" style="background:#034eb1"></div>${monthShort} 2025</div>
+        </div>
+        <div class="chart-area"><canvas id="cTrend"></canvas></div>
+      </div>
+      <div class="bottom-2col">
+        <div class="b-card">
+          <div class="b-head"><div><div class="b-title">Top 5 ยอดขาย แยกลูกค้า</div><div class="b-sub">Bill 2026 (THB)</div></div><div class="b-chip">Bill 2026</div></div>
+          <div class="b-area"><canvas id="cCust"></canvas></div>
+        </div>
+        <div class="b-card b-card-prog">
+          <div class="b-head" style="flex-shrink:0;margin-bottom:6px">
+            <div><div class="b-title">เปรียบเทียบยอดขาย 2026 vs 2025</div><div class="b-sub">ข้อมูล ณ ${dateLabel}</div></div>
+            <div class="b-chip">vs ปีก่อน</div>
+          </div>
+          <div class="prog-totals">
+            <div class="prog-yr-block"><div class="prog-yr-label">ปี 2025</div><div class="prog-yr-box red">${fmtFull(cum25ToDate)}</div></div>
+            <div class="prog-yr-block"><div class="prog-yr-label">ปี 2026</div><div class="prog-yr-box grn">${fmtFull(totalBill)}</div></div>
+          </div>
+          <div class="prog-section">
+            <div class="prog-target-t">🎯 เป้าหมาย${monthFull} · 50,000,000 บาท</div>
+            <div class="prog-bars">
+              <div class="prog-row"><span class="prog-yr-tag p26">2026</span><div class="prog-track"><div class="prog-fill pfill26" style="width:${pct26Width}%"></div></div><span class="prog-val p26">${fmtMv(totalBill)}</span></div>
+              <div class="prog-row"><span class="prog-yr-tag p25">2025</span><div class="prog-track"><div class="prog-fill pfill25" style="width:${pct25Width}%"></div></div><span class="prog-val p25">${fmtMv(cum25ToDate)}</span></div>
+              <div class="prog-scale"><span>0</span><span>25M</span><span>50M</span></div>
+            </div>
+          </div>
+          <div class="prog-sep"></div>
+          <div class="prog-foot"><span class="${diffVsPrev >= 0 ? 'tag-green' : 'tag-red'}">${yoySign} ${diffLabel}</span><span class="temp"><span class="${yoyPct<0?'dn':'dim'}">▼</span><span class="${yoyPct>=0?'v-up':'v-dn'}">${yoyLabel}</span><span class="${yoyPct>=0?'up':'dim'}">▲</span></span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Right: Top 5 สินค้า full height -->
+    <div class="right-panel">
+      <div class="b-head"><div><div class="b-title">Top 20 สินค้า ตามยอดออกบิล</div><div class="b-sub">Bill 2026 (THB)</div></div><div class="b-chip">Bill 2026</div></div>
+      <div class="b-area"><canvas id="cProd"></canvas></div>
+    </div>
+  </div>
+</div>
+<script>
+Chart.register(ChartDataLabels);
+const fmt=v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':String(v);
+const fmtS=v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':String(v);
+const gC='#eceef1',tC='#6b6d70';Chart.defaults.font.family="'Mulish','Prompt',sans-serif";Chart.defaults.font.weight='500';
+const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false}}};
+new Chart(document.getElementById('cCust'),{type:'bar',data:{labels:${custL},datasets:[{data:${custD},backgroundColor:${custC},borderRadius:4,barPercentage:.68}]},options:{...base,indexAxis:'y',layout:{padding:{right:55}},plugins:{...base.plugins,tooltip:{callbacks:{label:c=>'ยอดออกบิล: '+fmt(c.raw)}},datalabels:{display:true,anchor:'end',align:'right',color:'#000',font:{size:10.5,weight:'700',family:"'Mulish','Prompt',sans-serif"},formatter:v=>fmtS(v)}},scales:{x:{ticks:{color:tC,font:{size:10},callback:fmtS},grid:{color:gC},border:{display:false}},y:{ticks:{color:'#000',font:{size:11,weight:'700'}},grid:{display:false},border:{display:false}}}}});
+new Chart(document.getElementById('cProd'),{type:'bar',data:{labels:${prodL},datasets:[{data:${prodD},backgroundColor:${prodC},borderRadius:4,barPercentage:.72}]},options:{...base,indexAxis:'y',layout:{padding:{right:72,left:4}},plugins:{...base.plugins,tooltip:{callbacks:{label:c=>'ยอดออกบิล: '+fmt(c.raw)}},datalabels:{display:true,anchor:'end',align:'right',color:'#000',font:{size:12,weight:'700',family:"'Mulish','Prompt',sans-serif"},formatter:v=>fmtS(v)}},scales:{x:{ticks:{color:tC,font:{size:9},callback:fmtS},grid:{color:gC},border:{display:false}},y:{ticks:{color:'#000',font:{size:11,weight:'500'},maxRotation:0},grid:{display:false},border:{display:false}}}}});
+const aD=Array.from({length:31},(_,i)=>i+1);
+const dL=${dLbls};
+const r26=${r26},r25=${r25};
+const c26=${c26},c25=${c25};
+const d26=aD.map(d=>r26[d]??null),d25=aD.map(d=>r25[d]??null);
+function buildDS(m){
+  const a=m==='cum'?c26:d26,b=m==='cum'?c25:d25;
+  return [
+    {label:'${monthShort} 2026',data:a,borderColor:'#30a83c',backgroundColor:x=>{const g=x.chart.ctx.createLinearGradient(0,0,0,280);g.addColorStop(0,'rgba(48,168,60,.14)');g.addColorStop(1,'rgba(48,168,60,0)');return g;},fill:true,tension:.4,spanGaps:true,pointRadius:a.map(v=>v!=null?6:0),pointHoverRadius:8,pointBackgroundColor:'#30a83c',pointBorderColor:'#fff',pointBorderWidth:2.5,borderWidth:3},
+    {label:'${monthShort} 2025',data:b,borderColor:'#034eb1',backgroundColor:x=>{const g=x.chart.ctx.createLinearGradient(0,0,0,280);g.addColorStop(0,'rgba(3,78,177,.06)');g.addColorStop(1,'rgba(3,78,177,0)');return g;},fill:true,tension:.4,spanGaps:true,pointRadius:b.map(v=>v!=null?5:0),pointHoverRadius:7,pointBackgroundColor:'#034eb1',pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2,borderDash:[6,4]}
+  ];
+}
+// ── Vertical line plugin for last data point ──
+const vertLinePlugin = {
+  id: 'vertLine',
+  afterDraw(chart) {
+    const d26 = chart.data.datasets[0].data;
+    const lastIdx = d26.reduce((acc, v, i) => v !== null ? i : acc, -1);
+    if (lastIdx < 0) return;
+    const meta = chart.getDatasetMeta(0);
+    const pt = meta.data[lastIdx];
+    if (!pt) return;
+    const {ctx, chartArea: {top, bottom}} = chart;
+    const x = pt.x;
+    // vertical dashed line
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([5, 4]);
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.strokeStyle = 'rgba(48,168,60,.6)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // label pill at top
+    const label = chart.data.labels[lastIdx];
+    ctx.setLineDash([]);
+    ctx.font = "700 13px 'Mulish','Prompt',sans-serif";
+    const tw = ctx.measureText(label).width;
+    const pw = tw + 24, ph = 26, pr = 13;
+    let lx = x - pw / 2;
+    if (lx < chart.chartArea.left) lx = chart.chartArea.left;
+    if (lx + pw > chart.chartArea.right) lx = chart.chartArea.right - pw;
+    ctx.fillStyle = '#30a83c';
+    ctx.beginPath();
+    ctx.roundRect(lx, top - 4, pw, ph, pr);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, lx + pw / 2, top - 4 + ph / 2);
+    ctx.restore();
+  }
+};
+const tc=new Chart(document.getElementById('cTrend'),{type:'line',plugins:[vertLinePlugin],data:{labels:dL,datasets:buildDS('cum')},options:{responsive:true,maintainAspectRatio:false,spanGaps:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},datalabels:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#dfe1e4',borderWidth:1,titleColor:'#6b6d70',bodyColor:'#000',padding:10,cornerRadius:8,boxPadding:4,callbacks:{title:i=>'วันที่ '+i[0].label,label:c=>{if(c.raw===null)return null;return ' '+c.dataset.label+': '+c.raw.toLocaleString('th-TH',{minimumFractionDigits:2})},filter:i=>i.raw!==null}}},scales:{x:{ticks:{color:tC,font:{size:10.5},maxTicksLimit:16,autoSkip:true},grid:{color:gC},border:{display:false}},y:{ticks:{color:tC,font:{size:10.5},callback:fmtS},grid:{color:gC},border:{display:false},beginAtZero:true}}}});
+let cm='cum';
+function setMode(m){if(m===cm)return;cm=m;document.getElementById('btnCum').classList.toggle('active',m==='cum');document.getElementById('btnDay').classList.toggle('active',m==='day');document.getElementById('trendTitle').textContent=m==='cum'?'ยอดออกบิลสะสม — ${monthFull} 2026 เทียบ 2025':'ยอดออกบิลรายวัน — ${monthFull} 2026 เทียบ 2025';const ds=buildDS(m);[0,1].forEach(i=>{tc.data.datasets[i].data=ds[i].data;tc.data.datasets[i].pointRadius=ds[i].pointRadius;});tc.update('active');}
+<\/script>
+</body>
+</html>`;
+}
+</script>
+</body>
+</html>

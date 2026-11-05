@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Dashboard — ตุลาคม 2569</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@500;700&family=Prompt:wght@500;700&display=swap');
+:root{--primary:#30a83c;--green-strong:#197e25;--mint:#defde4;--hot:#ce1736;--hot-soft:#fde8ec;--cold:#034eb1;--cold-soft:#e6eefa;--canvas:#f3f5f7;--surface:#fff;--ink:#000;--body:#6b6d70;--muted:#a7a9ac;--hairline:#dfe1e4;--warn-bg:#faf9ca;--warn-tx:#9f5c0c;--pill:540px;--lift:0 4px 12px rgba(11,22,44,.09)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100vh;overflow:hidden;font-family:'Mulish','Prompt',sans-serif;font-weight:500;background:var(--canvas);color:var(--ink);font-size:14px}
+.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.tl{display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;border-radius:9999px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px}
+.t-title{font-size:16px;font-weight:700;color:var(--ink)}.t-sub{font-size:12px;color:var(--body);margin-top:1px}
+.tr{display:flex;align-items:center;gap:8px}
+.chip{font-size:14px;font-weight:700;padding:5px 12px;border-radius:var(--pill);background:var(--surface);color:var(--ink);border:1px solid var(--hairline)}
+.chip-live{background:var(--mint);color:var(--green-strong);border-color:var(--mint);display:flex;align-items:center;gap:6px}
+.chip-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--primary);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.page{height:calc(100vh - 52px);display:flex;flex-direction:column;padding:12px 16px;gap:12px;overflow:hidden}
+.kpi-row{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--hairline);position:relative;overflow:hidden;transition:box-shadow .15s}
+.kpi:hover{box-shadow:var(--lift)}
+.kpi-icon{width:44px;height:44px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--canvas)}
+.kpi-body{min-width:0}
+.kv{font-size:24px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--ink)}
+.kpi-g .kv{color:var(--primary)}
+.kpi-g .kpi-icon{background:var(--mint)}
+.kpi-r .kv{color:var(--warn-tx)}
+.kpi-r .kpi-icon{background:var(--warn-bg)}
+.kl{font-size:14px;color:var(--ink);margin-top:2px;font-weight:700}
+.ks{font-size:12px;color:var(--body);margin-top:2px}
+.kbadge{display:inline-block;font-size:12px;font-weight:700;padding:2px 6px;border-radius:4px;margin-right:4px}
+.kbadge-mint{background:var(--mint);color:var(--green-strong)}
+.kbadge-warn{background:var(--warn-bg);color:var(--warn-tx)}
+.main-area{flex:1 1 0;min-height:0;display:flex;gap:12px}
+.left-panel{flex:2 1 0;min-height:0;display:flex;flex-direction:column;gap:12px}
+.trend-card{flex:1;min-height:0;background:var(--surface);border-radius:8px;border:1px solid var(--hairline);padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.trend-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ct{font-size:16px;font-weight:700;color:var(--ink)}.cs{font-size:12px;color:var(--body);margin-top:2px}
+.tgl{display:flex;background:var(--surface);border-radius:var(--pill);padding:2px;border:1px solid var(--hairline)}
+.tgl-btn{font-family:inherit;font-size:14px;font-weight:700;padding:5px 14px;border-radius:var(--pill);background:transparent;color:var(--body);border:none;cursor:pointer;transition:background .15s,color .15s}
+.tgl-btn.active{background:var(--primary);color:#fff}
+.trend-leg{flex:0 0 auto;display:flex;gap:16px}
+.tleg{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink)}
+.tleg-ln{width:22px;height:3px;border-radius:2px;flex-shrink:0}
+.chart-area{flex:1 1 0;min-height:0;position:relative}
+.bottom-2col{flex:0 0 265px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.right-panel{flex:1 1 0;min-height:0;background:var(--surface);border-radius:8px;border:1px solid var(--hairline);padding:12px 16px;display:flex;flex-direction:column;overflow:hidden}
+.right-panel .b-area{flex:none;height:680px;position:relative;overflow-y:auto}
+.b-card{background:var(--surface);border-radius:8px;border:1px solid var(--hairline);padding:12px 16px;display:flex;flex-direction:column;min-height:0}
+.b-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.b-title{font-size:14px;font-weight:700;color:var(--ink)}.b-sub{font-size:12px;color:var(--body);margin-top:2px}
+.b-chip{font-size:12px;padding:2px 8px;border-radius:4px;background:var(--canvas);color:var(--body);white-space:nowrap;flex-shrink:0;font-weight:700}
+.b-area{flex:1 1 0;min-height:0;position:relative}
+.b-card-prog{justify-content:space-between;gap:8px}
+.prog-totals{display:flex;gap:8px;flex-shrink:0}
+.prog-yr-block{flex:1;text-align:center;border:1px solid var(--hairline);border-radius:8px;padding:6px 4px}
+.prog-yr-label{font-size:12px;font-weight:700;color:var(--body);margin-bottom:2px}
+.prog-yr-box{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25}
+.prog-yr-box.red{color:var(--cold)}.prog-yr-box.grn{color:var(--primary)}
+.prog-section{flex-shrink:0}
+.prog-target-t{font-size:12px;font-weight:700;color:var(--body);text-align:center;margin-bottom:8px}
+.prog-bars{display:flex;flex-direction:column;gap:6px}
+.prog-row{display:flex;align-items:center;gap:8px}
+.prog-yr-tag{font-size:12px;font-weight:700;width:36px;text-align:right;flex-shrink:0}
+.p26{color:var(--primary)}.p25{color:var(--cold)}
+.prog-track{flex:1;height:14px;background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--pill);overflow:hidden}
+.prog-fill{height:100%;border-radius:var(--pill);transition:width 1s ease-out}
+.pfill26{background:var(--primary)}.pfill25{background:var(--cold)}
+.prog-val{font-size:14px;font-weight:700;width:44px;font-variant-numeric:tabular-nums;flex-shrink:0}
+.prog-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;padding:0 52px 0 44px}
+.prog-sep{height:1px;background:var(--hairline);flex-shrink:0}
+.prog-foot{display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0}
+.tag-green{font-size:14px;font-weight:700;color:var(--green-strong);background:var(--mint);border-radius:4px;padding:4px 8px}
+.tag-red{font-size:14px;font-weight:700;color:var(--hot);background:var(--hot-soft);border-radius:4px;padding:4px 8px}
+.temp{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--pill);padding:4px 12px;font-variant-numeric:tabular-nums}
+.temp .dn{color:var(--cold)}.temp .up{color:var(--primary)}.temp .dim{color:var(--hairline)}
+.temp .v-up{color:var(--green-strong)}.temp .v-dn{color:var(--hot)}
+
+  /* right-panel internal scroll */
+  .right-panel .b-area::-webkit-scrollbar{width:4px}
+  .right-panel .b-area::-webkit-scrollbar-track{background:transparent}
+  .right-panel .b-area::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl">
+    <div class="logo">📊</div>
+    <div><div class="t-title">Sales Intelligence Dashboard</div><div class="t-sub">Bill 2026 vs Bill 2025</div></div>
+  </div>
+  <div class="tr">
+    <div class="chip">ตุลาคม 2569</div>
+    <div class="chip chip-live">ข้อมูล ณ 27 ต.ค. 2569</div>
+  </div>
+</div>
+<div class="page">
+  <div class="kpi-row">
+    <div class="kpi kpi-b"><div class="kpi-icon">📦</div><div class="kpi-body"><div class="kv">50.2M</div><div class="kl">ยอดสั่งซื้อรวม</div><div class="ks">1,284 รายการ · เฉลี่ย 39,071</div></div></div>
+    <div class="kpi kpi-g"><div class="kpi-icon">✅</div><div class="kpi-body"><div class="kv">40.3M</div><div class="kl">ยอดออกบิลแล้ว 2026</div><div class="ks">26 วันทำการ</div></div></div>
+    <div class="kpi kpi-a"><div class="kpi-icon">📈</div><div class="kpi-body"><div class="kv">83.0%</div><div class="kl">อัตราออกบิล</div><div class="ks"><span class="kbadge kbadge-mint">1066</span>จาก 1,284 รายการ</div></div></div>
+    <div class="kpi kpi-r"><div class="kpi-icon">⏳</div><div class="kpi-body"><div class="kv">9.8M</div><div class="kl">ยังไม่ออกบิล</div><div class="ks"><span class="kbadge kbadge-warn">218</span>รายการ (17.0%)</div></div></div>
+  </div>
+  <div class="main-area">
+    <!-- Left: line chart + 2-col bottom -->
+    <div class="left-panel">
+      <div class="trend-card">
+        <div class="trend-head">
+          <div><div class="ct" id="trendTitle">ยอดออกบิลสะสม — ตุลาคม 2026 เทียบ 2025</div><div class="cs">Net Val After Disc THB · 2025 เต็มเดือน · 2026 = 26 วันทำการ</div></div>
+          <div class="tgl">
+            <button id="btnCum" class="tgl-btn active" onclick="setMode('cum')">ยอดสะสม</button>
+            <button id="btnDay" class="tgl-btn" onclick="setMode('day')">ยอดรายวัน</button>
+          </div>
+        </div>
+        <div class="trend-leg">
+          <div class="tleg"><div class="tleg-ln" style="background:#30a83c"></div>ต.ค. 2026</div>
+          <div class="tleg"><div class="tleg-ln" style="background:#034eb1"></div>ต.ค. 2025</div>
+        </div>
+        <div class="chart-area"><canvas id="cTrend"></canvas></div>
+      </div>
+      <div class="bottom-2col">
+        <div class="b-card">
+          <div class="b-head"><div><div class="b-title">Top 5 ยอดขาย แยกลูกค้า</div><div class="b-sub">Bill 2026 (THB)</div></div><div class="b-chip">Bill 2026</div></div>
+          <div class="b-area"><canvas id="cCust"></canvas></div>
+        </div>
+        <div class="b-card b-card-prog">
+          <div class="b-head" style="flex-shrink:0;margin-bottom:6px">
+            <div><div class="b-title">เปรียบเทียบยอดขาย 2026 vs 2025</div><div class="b-sub">ข้อมูล ณ 27 ต.ค. 2569</div></div>
+            <div class="b-chip">vs ปีก่อน</div>
+          </div>
+          <div class="prog-totals">
+            <div class="prog-yr-block"><div class="prog-yr-label">ปี 2025</div><div class="prog-yr-box red">38,898,714.02</div></div>
+            <div class="prog-yr-block"><div class="prog-yr-label">ปี 2026</div><div class="prog-yr-box grn">40,317,305.62</div></div>
+          </div>
+          <div class="prog-section">
+            <div class="prog-target-t">🎯 เป้าหมายตุลาคม · 50,000,000 บาท</div>
+            <div class="prog-bars">
+              <div class="prog-row"><span class="prog-yr-tag p26">2026</span><div class="prog-track"><div class="prog-fill pfill26" style="width:80.6%"></div></div><span class="prog-val p26">40.3M</span></div>
+              <div class="prog-row"><span class="prog-yr-tag p25">2025</span><div class="prog-track"><div class="prog-fill pfill25" style="width:77.8%"></div></div><span class="prog-val p25">38.9M</span></div>
+              <div class="prog-scale"><span>0</span><span>25M</span><span>50M</span></div>
+            </div>
+          </div>
+          <div class="prog-sep"></div>
+          <div class="prog-foot"><span class="tag-green">▲ +1.4M vs ปีก่อน</span><span class="temp"><span class="dim">▼</span><span class="v-up">+3.6% YoY</span><span class="up">▲</span></span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Right: Top 5 สินค้า full height -->
+    <div class="right-panel">
+      <div class="b-head"><div><div class="b-title">Top 20 สินค้า ตามยอดออกบิล</div><div class="b-sub">Bill 2026 (THB)</div></div><div class="b-chip">Bill 2026</div></div>
+      <div class="b-area"><canvas id="cProd"></canvas></div>
+    </div>
+  </div>
+</div>
+<script>
+Chart.register(ChartDataLabels);
+const fmt=v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':String(v);
+const fmtS=v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':String(v);
+const gC='#eceef1',tC='#6b6d70';Chart.defaults.font.family="'Mulish','Prompt',sans-serif";Chart.defaults.font.weight='500';
+const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false}}};
+new Chart(document.getElementById('cCust'),{type:'bar',data:{labels:["MangoMart","FreshWay Super","Siam Value Store","QuickBuy 24","Golden Basket"],datasets:[{data:[9442934,5827693,3986711,3712021,3121863],backgroundColor:["#197e25","#30a83c","#30a83c","#30a83c","#30a83c"],borderRadius:4,barPercentage:.68}]},options:{...base,indexAxis:'y',layout:{padding:{right:55}},plugins:{...base.plugins,tooltip:{callbacks:{label:c=>'ยอดออกบิล: '+fmt(c.raw)}},datalabels:{display:true,anchor:'end',align:'right',color:'#000',font:{size:10.5,weight:'700',family:"'Mulish','Prompt',sans-serif"},formatter:v=>fmtS(v)}},scales:{x:{ticks:{color:tC,font:{size:10},callback:fmtS},grid:{color:gC},border:{display:false}},y:{ticks:{color:'#000',font:{size:11,weight:'700'}},grid:{display:false},border:{display:false}}}}});
+new Chart(document.getElementById('cProd'),{type:'bar',data:{labels:["Krua Baan Tom Yum Paste 2kg","Ocean Bowl Fish Balls 1kg","Snack Studio Rice Crackers 300ml","Tasty Box Basil Chicken Rice 150g","Golden Wok Green Curry Paste 300ml","Tasty Box Pad Thai Kit 1kg","Siam Spice Co. Soy Sauce 2kg","CocoBay Lemongrass Drink 1L","CrispyLab Fried Chicken Flour 1kg","Tempura House Tapioca Starch 700ml","Baker's Friend Bread Improver 2kg","Rice Garden Fried Rice Bowl 150g","Golden Wok Oyster Sauce 500g","CocoBay Chrysanthemum Tea 150g","Siam Spice Co. Seasoning Sauce 1kg","Krua Baan Seasoning Sauce 1kg","CrispyLab Tapioca Starch 1L","Noi's Kitchen Fried Rice Bowl 1kg","Siam Spice Co. Sweet Chili Sauce 200g","Baker's Friend Whipping Base 1L"],datasets:[{data:[4816731,4433734,3017807,2375645,1919683,1423579,1263658,1230241,1185669,1081449,1048633,1046707,937442,927913,899514,887011,882182,850159,844974,844163],backgroundColor:["#197e25","#197e25","#197e25","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c","#30a83c"],borderRadius:4,barPercentage:.72}]},options:{...base,indexAxis:'y',layout:{padding:{right:72,left:4}},plugins:{...base.plugins,tooltip:{callbacks:{label:c=>'ยอดออกบิล: '+fmt(c.raw)}},datalabels:{display:true,anchor:'end',align:'right',color:'#000',font:{size:12,weight:'700',family:"'Mulish','Prompt',sans-serif"},formatter:v=>fmtS(v)}},scales:{x:{ticks:{color:tC,font:{size:9},callback:fmtS},grid:{color:gC},border:{display:false}},y:{ticks:{color:'#000',font:{size:11,weight:'500'},maxRotation:0},grid:{display:false},border:{display:false}}}}});
+const aD=Array.from({length:31},(_,i)=>i+1);
+const dL=["01 ต.ค.","02 ต.ค.","03 ต.ค.","04 ต.ค.","05 ต.ค.","06 ต.ค.","07 ต.ค.","08 ต.ค.","09 ต.ค.","10 ต.ค.","11 ต.ค.","12 ต.ค.","13 ต.ค.","14 ต.ค.","15 ต.ค.","16 ต.ค.","17 ต.ค.","18 ต.ค.","19 ต.ค.","20 ต.ค.","21 ต.ค.","22 ต.ค.","23 ต.ค.","24 ต.ค.","25 ต.ค.","26 ต.ค.","27 ต.ค.","28 ต.ค.","29 ต.ค.","30 ต.ค.","31 ต.ค."];
+const r26={"2":502670.27,"3":695290.65,"4":2637180.55,"5":1523357.86,"6":428718.32,"7":969582.12,"8":659645.46,"9":2235379.77,"10":1133942.12,"11":2018301.63,"12":1331364.26,"13":1742894.4,"14":1188377.83,"15":2126164.96,"16":2233938.54,"17":1953964.73,"18":1075255.01,"19":2087017.41,"20":1735275.67,"21":1295871.87,"22":1358887.85,"23":1576112.88,"24":2051727.58,"25":2427506.57,"26":1435474.28,"27":1893403.03},r25={"1":1743156.51,"2":1939303.89,"3":1115910.53,"4":1136793.49,"6":1550331.85,"7":1771167.66,"8":1929167.67,"9":2050499.86,"10":1349483.58,"11":1948288.2,"13":2403922.86,"14":1519672.53,"15":2067352.09,"16":1478742.53,"17":1952532.83,"18":1795669.25,"20":1749375.13,"21":1871848.77,"22":1552115.17,"23":1086193.46,"24":1631830.93,"25":1983470.22,"27":1271885.01,"28":1703611.9,"29":2067817.91,"30":1407182.67,"31":1123371.16};
+const c26=[0,502670.27,1197960.92,3835141.47,5358499.33,5787217.65,6756799.77,7416445.23,9651825,10785767.12,12804068.75,14135433.01,15878327.41,17066705.24,19192870.2,21426808.74,23380773.47,24456028.48,26543045.89,28278321.56,29574193.43,30933081.28,32509194.16,34560921.74,36988428.31,38423902.59,40317305.62,null,null,null,null],c25=[1743156.51,3682460.4,4798370.93,5935164.42,5935164.42,7485496.27,9256663.93,11185831.6,13236331.46,14585815.04,16534103.24,16534103.24,18938026.1,20457698.63,22525050.72,24003793.25,25956326.08,27751995.33,27751995.33,29501370.46,31373219.23,32925334.4,34011527.86,35643358.79,37626829.01,37626829.01,38898714.02,40602325.92,42670143.83,44077326.5,45200697.66];
+const d26=aD.map(d=>r26[d]??null),d25=aD.map(d=>r25[d]??null);
+function buildDS(m){
+  const a=m==='cum'?c26:d26,b=m==='cum'?c25:d25;
+  return [
+    {label:'ต.ค. 2026',data:a,borderColor:'#30a83c',backgroundColor:x=>{const g=x.chart.ctx.createLinearGradient(0,0,0,280);g.addColorStop(0,'rgba(48,168,60,.14)');g.addColorStop(1,'rgba(48,168,60,0)');return g;},fill:true,tension:.4,spanGaps:true,pointRadius:a.map(v=>v!=null?6:0),pointHoverRadius:8,pointBackgroundColor:'#30a83c',pointBorderColor:'#fff',pointBorderWidth:2.5,borderWidth:3},
+    {label:'ต.ค. 2025',data:b,borderColor:'#034eb1',backgroundColor:x=>{const g=x.chart.ctx.createLinearGradient(0,0,0,280);g.addColorStop(0,'rgba(3,78,177,.06)');g.addColorStop(1,'rgba(3,78,177,0)');return g;},fill:true,tension:.4,spanGaps:true,pointRadius:b.map(v=>v!=null?5:0),pointHoverRadius:7,pointBackgroundColor:'#034eb1',pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2,borderDash:[6,4]}
+  ];
+}
+// ── Vertical line plugin for last data point ──
+const vertLinePlugin = {
+  id: 'vertLine',
+  afterDraw(chart) {
+    const d26 = chart.data.datasets[0].data;
+    const lastIdx = d26.reduce((acc, v, i) => v !== null ? i : acc, -1);
+    if (lastIdx < 0) return;
+    const meta = chart.getDatasetMeta(0);
+    const pt = meta.data[lastIdx];
+    if (!pt) return;
+    const {ctx, chartArea: {top, bottom}} = chart;
+    const x = pt.x;
+    // vertical dashed line
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([5, 4]);
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.strokeStyle = 'rgba(48,168,60,.6)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // label pill at top
+    const label = chart.data.labels[lastIdx];
+    ctx.setLineDash([]);
+    ctx.font = "700 13px 'Mulish','Prompt',sans-serif";
+    const tw = ctx.measureText(label).width;
+    const pw = tw + 24, ph = 26, pr = 13;
+    let lx = x - pw / 2;
+    if (lx < chart.chartArea.left) lx = chart.chartArea.left;
+    if (lx + pw > chart.chartArea.right) lx = chart.chartArea.right - pw;
+    ctx.fillStyle = '#30a83c';
+    ctx.beginPath();
+    ctx.roundRect(lx, top - 4, pw, ph, pr);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, lx + pw / 2, top - 4 + ph / 2);
+    ctx.restore();
+  }
+};
+const tc=new Chart(document.getElementById('cTrend'),{type:'line',plugins:[vertLinePlugin],data:{labels:dL,datasets:buildDS('cum')},options:{responsive:true,maintainAspectRatio:false,spanGaps:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},datalabels:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#dfe1e4',borderWidth:1,titleColor:'#6b6d70',bodyColor:'#000',padding:10,cornerRadius:8,boxPadding:4,callbacks:{title:i=>'วันที่ '+i[0].label,label:c=>{if(c.raw===null)return null;return ' '+c.dataset.label+': '+c.raw.toLocaleString('th-TH',{minimumFractionDigits:2})},filter:i=>i.raw!==null}}},scales:{x:{ticks:{color:tC,font:{size:10.5},maxTicksLimit:16,autoSkip:true},grid:{color:gC},border:{display:false}},y:{ticks:{color:tC,font:{size:10.5},callback:fmtS},grid:{color:gC},border:{display:false},beginAtZero:true}}}});
+let cm='cum';
+function setMode(m){if(m===cm)return;cm=m;document.getElementById('btnCum').classList.toggle('active',m==='cum');document.getElementById('btnDay').classList.toggle('active',m==='day');document.getElementById('trendTitle').textContent=m==='cum'?'ยอดออกบิลสะสม — ตุลาคม 2026 เทียบ 2025':'ยอดออกบิลรายวัน — ตุลาคม 2026 เทียบ 2025';const ds=buildDS(m);[0,1].forEach(i=>{tc.data.datasets[i].data=ds[i].data;tc.data.datasets[i].pointRadius=ds[i].pointRadius;});tc.update('active');}
+</script>
+</body>
+</html>
