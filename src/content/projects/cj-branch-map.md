@@ -2,7 +2,7 @@
 title: CJ Express Branch Map
 folder: ai-tools
 type: MAP · LEAFLET
-order: 4
+order: 5
 summary: Every branch of a retail chain plotted on an interactive map, geocoded from addresses.
 stack: [Leaflet.js, Nominatim, JavaScript]
 builtWith: Claude (AI pair)

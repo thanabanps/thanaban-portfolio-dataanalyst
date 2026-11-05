@@ -9,7 +9,7 @@ Things the site still needs from you. Delete a line once it's done.
 
 ## Everywhere
 
-- Screenshots, taken with **simulated data**. Done: MT Sales Dashboard, Sales Dashboard Generator, Daily Sales YoY, Daily Order Dashboard, Personal Taskboard, Delivery Planner, DC Shipment Map. Save as `public/projects/<project-file-name>/cover.webp` and set `cover:` in the project file. Extra shots go in `gallery:`.
+- Screenshots, taken with **simulated data**. Done: MT Sales Dashboard, Sales Dashboard Generator, Daily Sales YoY, Daily Order Dashboard, Personal Taskboard, Delivery Planner, DC Shipment Map, PO → Truck Planner. Save as `public/projects/<project-file-name>/cover.webp` and set `cover:` in the project file. Extra shots go in `gallery:`.
 - An **Impact** section (`## Impact`) for each project: who uses it, how often, what it replaced, time saved.
 - `timeline:` for each project.
 - `src/site.ts` — add your LinkedIn URL and CV file (put the PDF in `public/`).

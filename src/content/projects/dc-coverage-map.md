@@ -2,7 +2,7 @@
 title: DC Shipment Map
 folder: ai-tools
 type: MAP · SHEETJS
-order: 3
+order: 4
 featured: false
 summary: Which distribution centre did every product go to? Billing data joined to the ship-to master and plotted on a map of Thailand.
 role: Solo — design to build

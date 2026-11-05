@@ -2,7 +2,7 @@
 title: Delivery Planner
 folder: ai-tools
 type: HTML · PROTOTYPE
-order: 2
+order: 3
 summary: One screen for the logistics team to see every PO by delivery day, warehouse and store — and tick them off as they ship.
 role: Solo — design to build
 stack: [HTML, JavaScript]

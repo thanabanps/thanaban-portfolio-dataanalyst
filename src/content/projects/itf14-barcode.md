@@ -2,7 +2,7 @@
 title: ITF-14 Barcode Generator
 folder: ai-tools
 type: GENERATOR
-order: 5
+order: 6
 summary: Generates ITF-14 carton barcodes with GS1 check-digit validation.
 stack: [JavaScript]
 builtWith: Claude (AI pair)
